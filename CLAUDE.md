@@ -15,7 +15,7 @@
 - `scripts/cz sim|test|shots|deb|push|run`.
 
 ## Пристрій
-- `pi@192.168.1.215`, SSH по ключу. `sudo` просить пароль → `scripts/cz push` інтерактивний (`ssh -t`).
+- `pi@192.168.1.215`, SSH по ключу. `sudo` без пароля лише для `apt-get`/`dpkg` (`/etc/sudoers.d/cz-deploy`) → `scripts/cz push` працює неінтерактивно.
 - Без встановлення: розпакувати `.deb` у `~/cz-test`, запуск `CZ_ASSETS=~/cz-test/usr/share/cz-<app> ~/cz-test/usr/bin/cz-<app>`.
   При запуску по ssh застосунок малює поверх лаунчера (лаунчер ділить клавіатуру й fb).
 - Клавіатура `tca8418c` (`/dev/input/event3`): Sym-символи драйвер шле кодами з vendor-мапи (72 = `+`, 92 = `/`…) — шукати до US-розкладки,
