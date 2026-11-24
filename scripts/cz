@@ -55,7 +55,18 @@ case "$cmd" in
         deb="$(ls -t "$ROOT"/dist/${bin}_*_arm64.deb | head -1)"
         log "installing $(basename "$deb") on $HOST"
         scp -q "$deb" "$HOST:/tmp/"
-        ssh -t "$HOST" "sudo apt-get install -y --reinstall /tmp/$(basename "$deb") && rm /tmp/$(basename "$deb")"
+        remote_install="sudo apt-get install -y --reinstall /tmp/$(basename "$deb") && rm /tmp/$(basename "$deb")"
+        if ssh "$HOST" 'sudo -n true' 2>/dev/null; then
+            ssh "$HOST" "$remote_install"
+        elif [[ -t 0 ]]; then
+            ssh -t "$HOST" "$remote_install"   # interactive: sudo asks for the password
+        else
+            echo "sudo on $HOST needs a password and there is no terminal here." >&2
+            echo "Run this once in a real terminal to allow package installs without a password:" >&2
+            echo "  ssh -t $HOST 'echo \"pi ALL=(root) NOPASSWD: /usr/bin/apt-get, /usr/bin/dpkg\" | sudo tee /etc/sudoers.d/cz-deploy && sudo chmod 440 /etc/sudoers.d/cz-deploy'" >&2
+            echo "or run 'scripts/cz push $app' from a real terminal." >&2
+            exit 1
+        fi
         ;;
     run)
         script="${3:-}"
