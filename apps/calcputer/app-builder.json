@@ -1,8 +1,8 @@
 {
-  "package_name": "cz-calc",
+  "package_name": "cz-calcputer",
   "app_name": "CalcPuter",
-  "bin_name": "cz-calc",
-  "version": "0.2.1",
+  "bin_name": "cz-calcputer",
+  "version": "0.3.0",
   "description": "Engineering calculator with function graphs",
 
   "store": {

@@ -1,6 +1,6 @@
-# cz-calc: engineering calculator with graphs.
+# cz-calcputer: engineering calculator with graphs.
 
-set(CALC_VERSION 0.2.1)
+set(CALC_VERSION 0.3.0)
 
 # Pure C++ core (no LVGL): expression language, formatting, session, plot math.
 add_library(calc_core STATIC
@@ -13,7 +13,7 @@ add_library(calc_core STATIC
 )
 target_include_directories(calc_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core")
 
-add_executable(cz-calc
+add_executable(cz-calcputer
     src/main.cpp
     src/calc_app.cpp
     src/calc_page.cpp
@@ -21,8 +21,8 @@ add_executable(cz-calc
     src/graph_page.cpp
     src/style.cpp
 )
-target_link_libraries(cz-calc PRIVATE czkit calc_core)
-target_compile_definitions(cz-calc PRIVATE CALC_DEV_ASSETS="${CMAKE_CURRENT_SOURCE_DIR}/assets")
+target_link_libraries(cz-calcputer PRIVATE czkit calc_core)
+target_compile_definitions(cz-calcputer PRIVATE CALC_DEV_ASSETS="${CMAKE_CURRENT_SOURCE_DIR}/assets")
 
 if(USE_DESKTOP)
     add_executable(calc_core_tests tests/core_tests.cpp)
@@ -32,11 +32,11 @@ endif()
 
 include("${PROJECT_SOURCE_DIR}/cmake/cz-package.cmake")
 cz_package_app(
-    TARGET       cz-calc
+    TARGET       cz-calcputer
     DISPLAY_NAME "CalcPuter"
     VERSION      ${CALC_VERSION}
     SUMMARY      "Engineering calculator with function graphs"
-    ICON         assets/images/cz-calc.png
+    ICON         assets/images/cz-calcputer.png
     ASSETS_DIR   assets
 )
 include(CPack)

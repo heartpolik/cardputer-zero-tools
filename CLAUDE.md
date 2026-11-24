@@ -34,9 +34,9 @@
 - ASan на цьому macOS падає на старті → тести з `-fsanitize=undefined`.
 - Переглядач скріншотів у Claude кешує за шляхом — для повторного перегляду копіювати під новим іменем.
 
-## CalcPuter (apps/calc, пакет `cz-calc`)
+## CalcPuter (apps/calcputer, пакет `cz-calcputer`)
 - `core/expr` (лексер/Pratt-парсер/AST/eval, спецформи `der/integ/solve/sum` по `x`), `format` (AUTO/SCI/ENG), `engine` (історія лише успішних,
-  `ans`, змінні/функції, 4 слоти графіків, серіалізація в `~/.config/cz-calc/state.txt`), `line_editor` + `prepare_input` (`*2`→`ans*2`, автодужки),
+  `ans`, змінні/функції, 4 слоти графіків, серіалізація в `~/.config/cz-calcputer/state.txt`), `line_editor` + `prepare_input` (`*2`→`ans*2`, автодужки),
   `plot_math` (viewport, nice ticks, корені, екстремуми з уточненням по f'=0).
 - UI: `CalcApp` (статус-бар, Tab між CALC/Y=/GRAPH, F1 help, F2 DEG/RAD, F3 формат, F4 тема, F5 очистити історію),
   `GraphPage` малює в буфер canvas сам (Bresenham), не примітивами LVGL.

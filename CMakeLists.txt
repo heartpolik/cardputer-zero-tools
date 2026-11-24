@@ -18,7 +18,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 # USE_DESKTOP: whether to build desktop emulator, useful when you want preview with LVGL simulator
 # For instance, '-DUSE_DESKTOP=OFF' suggest building for CM0
 set(USE_DESKTOP ON CACHE BOOL "Build the desktop emulator target with LVGL SDL support")
-set(CZ_APP "calc" CACHE STRING "Application to build and package (directory under apps/)")
+set(CZ_APP "calcputer" CACHE STRING "Application to build and package (directory under apps/)")
 set(APP_ASSETS_ROOT "" CACHE PATH "Optional runtime assets root. Expected subdirectories include fonts/")
 set(APP_KEY_INPUT_DEVICE "" CACHE STRING "Optional Linux evdev keyboard/keypad device path, e.g. /dev/input/event0")
 set(APP_FRAMEBUFFER_DEVICE "/dev/fb0" CACHE STRING "Linux framebuffer device path used by embedded builds")

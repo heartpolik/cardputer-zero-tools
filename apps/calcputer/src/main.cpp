@@ -6,7 +6,7 @@
 #endif
 
 int main() {
-    cz::Runtime rt("cz-calc", USE_DESKTOP ? CALC_DEV_ASSETS : "");
+    cz::Runtime rt("cz-calcputer", USE_DESKTOP ? CALC_DEV_ASSETS : "");
     if (!rt.init()) return 1;
 
     int code = 0;

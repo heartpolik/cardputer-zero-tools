@@ -1,4 +1,4 @@
-# Build + test every app; on a tag "<app>-v<version>" (e.g. calc-v0.2.0) also
+# Build + test every app; on a tag "<app>-v<version>" (e.g. calcputer-v0.3.0) also
 # publish a GitHub release with that app's arm64 .deb.
 #
 # Packages are built natively on GitHub's arm64 runner inside debian:trixie,

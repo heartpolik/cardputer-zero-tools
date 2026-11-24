@@ -6,15 +6,15 @@ Small native apps for the [M5Stack CardputerZero](https://shop.m5stack.com/pages
 
 | App | What it is |
 |---|---|
-| [`calc`](apps/calc) | **CalcPuter** — engineering calculator: expressions, variables, user functions, calculus, function graphs with trace / roots / extrema |
+| [`calcputer`](apps/calcputer) | **CalcPuter** — engineering calculator: expressions, variables, user functions, calculus, function graphs with trace / roots / extrema |
 
-## CalcPuter (`apps/calc`)
+## CalcPuter (`apps/calcputer`)
 
 | | |
 |---|---|
-| ![calc](apps/calc/screenshots/calc.png) | ![history](apps/calc/screenshots/history.png) |
-| ![functions](apps/calc/screenshots/functions.png) | ![graph](apps/calc/screenshots/graph.png) |
-| ![trace](apps/calc/screenshots/trace.png) | ![help](apps/calc/screenshots/help.png) |
+| ![calc](apps/calcputer/screenshots/calc.png) | ![history](apps/calcputer/screenshots/history.png) |
+| ![functions](apps/calcputer/screenshots/functions.png) | ![graph](apps/calcputer/screenshots/graph.png) |
+| ![trace](apps/calcputer/screenshots/trace.png) | ![help](apps/calcputer/screenshots/help.png) |
 
 - **Fast input**: `Space` completes names (`sq` → `sqrt(|)`, again cycles `sin(` → `sinh(` → `sign(`;
   user functions and variables first), `(` inserts a `()` pair, `)` steps over an existing one,
@@ -30,7 +30,7 @@ Small native apps for the [M5Stack CardputerZero](https://shop.m5stack.com/pages
 - **Graphs**: four slots (`Y=` page), pan / zoom / fit, trace with `y` and `y'`, root (`R`) and
   min/max (`M`) search near the cursor.
 - Number formats AUTO / SCI / ENG (`F3`), DEG / RAD (`F2`), dark / light theme (`F4`).
-  History, variables, functions and plots persist in `~/.config/cz-calc/`.
+  History, variables, functions and plots persist in `~/.config/cz-calcputer/`.
 
 Keys: `Tab` switches CALC → Y= → GRAPH, `Fn+H` shows help for the current page, hold `Esc` quits.
 Operators live on the Sym layer (blue legends): `+` T, `-` R, `*` 8, `/` N, `^` 6, `(` 9, `)` 0, `.` B.
@@ -52,11 +52,11 @@ scripts/cz       dev helper
 Requirements (macOS): `brew install cmake ninja libpng jpeg-turbo fmt sdl2 freetype zlib dpkg`, Docker.
 
 ```sh
-scripts/cz sim calc      # desktop simulator (SDL, device-sized screen + clickable keyboard)
+scripts/cz sim calcputer      # desktop simulator (SDL, device-sized screen + clickable keyboard)
 scripts/cz test          # host tests: calculator core + keyboard decoder
-scripts/cz shots calc    # re-render the screenshots above from apps/calc/demo.script
-scripts/cz deb calc      # arm64 .deb in Docker -> dist/
-scripts/cz push calc     # build, copy and install on the device (CZ_HOST=pi@<ip>)
+scripts/cz shots calcputer    # re-render the screenshots above from apps/calcputer/demo.script
+scripts/cz deb calcputer      # arm64 .deb in Docker -> dist/
+scripts/cz push calcputer     # build, copy and install on the device (CZ_HOST=pi@<ip>)
 ```
 
 If Mono.framework (or another framework with an old `png.h`) is installed, configure with
@@ -68,7 +68,7 @@ If Mono.framework (or another framework with an old `png.h`) is installed, confi
 the device:
 
 ```sh
-ssh pi@<ip> "CZ_SCRIPT='2+2{enter}{shot:/tmp/s.png}{quit}' cz-calc"
+ssh pi@<ip> "CZ_SCRIPT='2+2{enter}{shot:/tmp/s.png}{quit}' cz-calcputer"
 ```
 
 ### CI and releases
@@ -79,11 +79,11 @@ built on GitHub's arm64 runner inside `debian:trixie` (artifacts on the run page
 Release an app by bumping its version in `apps/<app>/CMakeLists.txt` and pushing a matching tag:
 
 ```sh
-git tag calc-v0.2.0 && git push origin calc-v0.2.0
+git tag calcputer-v0.3.0 && git push origin calcputer-v0.3.0
 ```
 
 The workflow checks that the tag matches the version and publishes a GitHub release with the `.deb`.
-Install on the device: `sudo apt install ./cz-calc_<version>-1_arm64.deb`.
+Install on the device: `sudo apt install ./cz-calcputer_<version>-1_arm64.deb`.
 
 ### Publishing to the CardputerZero Store
 
@@ -94,8 +94,8 @@ permissions). Publishing uses the official [`czdev`](https://github.com/Cardpute
 ```sh
 git clone https://github.com/CardputerZero/AppBuilder ~/Developer/cz-appbuilder
 ~/Developer/cz-appbuilder/czdev login                      # GitHub device flow, once
-scripts/cz deb calc && scripts/cz store-check calc          # optional pre-check against the registry rules
-cd apps/calc && ~/Developer/cz-appbuilder/czdev publish --deb ../../dist/cz-calc_0.2.1-1_arm64.deb
+scripts/cz deb calcputer && scripts/cz store-check calcputer          # optional pre-check against the registry rules
+cd apps/calcputer && ~/Developer/cz-appbuilder/czdev publish --deb ../../dist/cz-calcputer_0.3.0-1_arm64.deb
 ```
 
 `czdev publish` uploads the `.deb` and opens a metadata PR against
@@ -107,7 +107,7 @@ later versions merge automatically once validation passes (the version must incr
 ### Adding an app
 
 1. `apps/<name>/CMakeLists.txt` with an executable linked to `czkit` and a `cz_package_app(...)` call
-   (see `apps/calc`).
+   (see `apps/calcputer`).
 2. `main.cpp`: `cz::Runtime rt("cz-<name>", DEV_ASSETS); rt.init();`, build the UI on
    `lv_screen_active()`, `rt.set_key_handler(...)`, `rt.run()`.
 3. `scripts/cz sim <name>` / `scripts/cz deb <name>`.

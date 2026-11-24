@@ -1,11 +1,11 @@
 # Install layout + Debian package for one cardputer-zero-tools app.
 #
 #   cz_package_app(
-#       TARGET       cz-calc            # executable target, also the package/binary name
+#       TARGET       cz-calcputer            # executable target, also the package/binary name
 #       DISPLAY_NAME "Calc"             # name shown in APPLaunch
 #       VERSION      0.1.0
 #       SUMMARY      "Engineering calculator with graphs"
-#       ICON         assets/images/cz-calc.png
+#       ICON         assets/images/cz-calcputer.png
 #       ASSETS_DIR   assets             # copied to /usr/share/<TARGET>/
 #   )
 

@@ -255,7 +255,11 @@ bool CalcApp::on_key(const cz::KeyEvent& ev) {
 }
 
 void CalcApp::load() {
-    const auto path = rt_.state_dir() / "state.txt";
+    auto path = rt_.state_dir() / "state.txt";
+    // the app was called cz-calc before 0.3: pick up its state once
+    const auto legacy = rt_.state_dir().parent_path() / "cz-calc" / "state.txt";
+    std::error_code ec;
+    if (!std::filesystem::exists(path, ec) && std::filesystem::exists(legacy, ec)) path = legacy;
     std::ifstream in(path);
     if (!in) return;
     std::stringstream buf;
