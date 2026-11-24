@@ -9,7 +9,7 @@
 #   scripts/cz push   [app]          deb + copy to the device + install
 #   scripts/cz run    [app] [script] run the installed app on the device over ssh
 #                                    (optional CZ_SCRIPT, e.g. '2+2{enter}{shot:/tmp/s.png}{quit}')
-#   scripts/cz shots  [app]          render README screenshots in the simulator -> docs/
+#   scripts/cz shots  [app]          render screenshots (README + store) -> apps/<app>/screenshots/
 #
 # Env: CZ_HOST (default pi@192.168.1.215)
 set -euo pipefail
@@ -85,7 +85,7 @@ case "$cmd" in
     shots)
         cd "$ROOT"
         sim_build
-        out="$ROOT/docs/$app"
+        out="$ROOT/apps/$app/screenshots"
         mkdir -p "$out"
         tmpcfg="$(mktemp -d)"
         script_file="$ROOT/apps/$app/demo.script"

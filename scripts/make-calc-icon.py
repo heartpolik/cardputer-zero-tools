@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Generates apps/calc/assets/images/cz-calc.png (100x100 RGBA) without PIL."""
+"""Generates the calc icon PNG (default 100x100 RGBA) without PIL.
+
+usage: make-calc-icon.py OUT.png [SIZE]"""
 import math, struct, sys, zlib
 
-W = H = 100
+W = H = int(sys.argv[2]) if len(sys.argv) > 2 else 100
+U = W / 100.0  # drawing is designed on a 100x100 grid
 SS = 4  # supersampling for antialiasing
 BG = (24, 26, 31); BORDER = (60, 64, 72); GRID = (44, 48, 56); AXIS = (120, 126, 136)
 C1 = (99, 226, 183); C2 = (112, 192, 232)
 
 def inside_round_rect(x, y, r=18):
-    cx = min(max(x, r), W - r); cy = min(max(y, r), H - r)
+    cx = min(max(x, r), 100 - r); cy = min(max(y, r), 100 - r)
     return (x - cx) ** 2 + (y - cy) ** 2 <= r * r
 
 def color_at(x, y):
     if not inside_round_rect(x, y):
         return None
-    if not inside_round_rect(x, y, 18) or not (2 <= x <= W - 2 and 2 <= y <= H - 2):
+    if not inside_round_rect(x, y, 18) or not (2 <= x <= 98 and 2 <= y <= 98):
         return BORDER
     if not inside_round_rect(x - 0, y - 0, 18):
         return BORDER
@@ -39,7 +42,7 @@ for py in range(H):
         acc = [0, 0, 0, 0]
         for sy in range(SS):
             for sx in range(SS):
-                c = color_at(px + (sx + .5) / SS, py + (sy + .5) / SS)
+                c = color_at((px + (sx + .5) / SS) / U, (py + (sy + .5) / SS) / U)
                 if c:
                     acc[0] += c[0]; acc[1] += c[1]; acc[2] += c[2]; acc[3] += 255
         n = SS * SS

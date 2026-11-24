@@ -12,9 +12,9 @@ Small native apps for the [M5Stack CardputerZero](https://shop.m5stack.com/pages
 
 | | |
 |---|---|
-| ![calc](docs/calc/calc.png) | ![history](docs/calc/history.png) |
-| ![functions](docs/calc/functions.png) | ![graph](docs/calc/graph.png) |
-| ![trace](docs/calc/trace.png) | ![help](docs/calc/help.png) |
+| ![calc](apps/calc/screenshots/calc.png) | ![history](apps/calc/screenshots/history.png) |
+| ![functions](apps/calc/screenshots/functions.png) | ![graph](apps/calc/screenshots/graph.png) |
+| ![trace](apps/calc/screenshots/trace.png) | ![help](apps/calc/screenshots/help.png) |
 
 - **Fast input**: `Space` completes names (`sq` → `sqrt(|)`, again cycles `sin(` → `sinh(` → `sign(`;
   user functions and variables first), `(` inserts a `()` pair, `)` steps over an existing one,
@@ -84,6 +84,25 @@ git tag calc-v0.2.0 && git push origin calc-v0.2.0
 
 The workflow checks that the tag matches the version and publishes a GitHub release with the `.deb`.
 Install on the device: `sudo apt install ./cz-calc_<version>-1_arm64.deb`.
+
+### Publishing to the CardputerZero Store
+
+Each app keeps its listing in `apps/<app>/app-builder.json` (`store` section: summary, categories,
+screenshots from `apps/<app>/screenshots/`, a 256×256 icon in `apps/<app>/packaging/`, share code,
+permissions). Publishing uses the official [`czdev`](https://github.com/CardputerZero/AppBuilder) CLI:
+
+```sh
+git clone https://github.com/CardputerZero/AppBuilder ~/Developer/cz-appbuilder
+~/Developer/cz-appbuilder/czdev login                      # GitHub device flow, once
+scripts/cz deb calc && scripts/cz store-check calc          # optional pre-check against the registry rules
+cd apps/calc && ~/Developer/cz-appbuilder/czdev publish --deb ../../dist/cz-calc_0.2.0-1_arm64.deb
+```
+
+`czdev publish` uploads the `.deb` and opens a metadata PR against
+[CardputerZero/packages](https://github.com/CardputerZero/packages). The **first** release of an app is
+merged by a maintainer after a short video of it running on a real device is posted in the PR;
+later versions merge automatically once validation passes (the version must increase — bump it in
+`CMakeLists.txt` and `app-builder.json` together, CI checks they agree).
 
 ### Adding an app
 

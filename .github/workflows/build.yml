@@ -26,7 +26,7 @@ jobs:
     outputs:
       list: ${{ steps.list.outputs.list }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: list
         run: |
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
@@ -54,13 +54,20 @@ jobs:
             build-essential cmake ninja-build git ca-certificates file dpkg-dev \
             libfreetype-dev libpng-dev libjpeg62-turbo-dev zlib1g-dev libfmt-dev libsdl2-dev
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Version matches tag
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Versions agree
         run: |
           v="$(scripts/cz version ${{ matrix.app }})"
-          if [ "$GITHUB_REF_NAME" != "${{ matrix.app }}-v$v" ]; then
+          manifest="apps/${{ matrix.app }}/app-builder.json"
+          if [ -f "$manifest" ]; then
+            mv="$(sed -nE 's/^ *"version": *"([^"]+)".*/\1/p' "$manifest" | head -1)"
+            if [ "$mv" != "$v" ]; then
+              echo "::error::$manifest version $mv != CMakeLists.txt version $v"
+              exit 1
+            fi
+          fi
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "$GITHUB_REF_NAME" != "${{ matrix.app }}-v$v" ]; then
             echo "::error::tag $GITHUB_REF_NAME does not match apps/${{ matrix.app }} version $v"
             exit 1
           fi
@@ -79,7 +86,7 @@ jobs:
         run: |
           for deb in dist/*.deb; do dpkg-deb -I "$deb"; dpkg-deb -c "$deb"; done
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: cz-${{ matrix.app }}-deb
           path: dist/*.deb
@@ -93,7 +100,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: dist
           merge-multiple: true
