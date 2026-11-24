@@ -47,7 +47,8 @@
 - `core/word` (ширина 8/16/32/64, signed, формати HEX/DEC/OCT/BIN, `literal()` для вводу), `int_expr` (рекурсивний спуск, C-пріоритети,
   усе обгортається до слова; у HEX-режимі слово з hex-цифр = число, `0b` там — hex; `0n` = десяткове), `decode` (CHR/FLT/UTC),
   `checksum` (CRC за параметрами reveng, перевірено check-значеннями "123456789"), `session` (`~/.config/cz-bitputer/state.txt`).
-- UI: BITS (ввід, 4 рядки значень, бітова сітка: Fn+X з вводу) і CRC. F2 база, F3 ширина, F4 signed, F5 декодування, F6 тема.
+- UI: BITS (ввід, 4 рядки значень, бітова сітка: Fn+X з вводу) і CRC. F2 база, F3 ширина, F4 signed, F5 декодування, F6 тема,
+  F7 сітка бітів ↔ таблиця порядків байтів (`reorder`: ABCD/DCBA/BADC/CDAB; функції `bswap16`, `wswap`).
 
 ## OhmPuter (apps/ohmputer, пакет `cz-ohmputer`)
 - `core/si` (`4k7`, `2u2`, `4R7`, юніти ігноруються; m = мілі, M = мега), `eseries` (E6–E96, nearest, пара для подільника),

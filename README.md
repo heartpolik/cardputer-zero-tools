@@ -43,7 +43,8 @@ Operators live on the Sym layer (blue legends): `+` T, `-` R, `*` 8, `/` N, `^` 
 |---|---|
 | ![bits](apps/bitputer/screenshots/bits.png) | ![grid](apps/bitputer/screenshots/grid.png) |
 | ![float](apps/bitputer/screenshots/float.png) | ![time](apps/bitputer/screenshots/time.png) |
-| ![signed](apps/bitputer/screenshots/signed.png) | ![crc](apps/bitputer/screenshots/crc.png) |
+| ![signed](apps/bitputer/screenshots/signed.png) | ![orders](apps/bitputer/screenshots/orders.png) |
+| ![crc](apps/bitputer/screenshots/crc.png) | ![help](apps/bitputer/screenshots/help.png) |
 
 - **Words**: 8 / 16 / 32 / 64 bits (`F3`), unsigned or two's-complement signed (`F4`); every
   operation wraps like a register. The value is shown in HEX, DEC (plus the other signedness),
@@ -52,9 +53,13 @@ Operators live on the Sym layer (blue legends): `+` T, `-` R, `*` 8, `/` N, `^` 
   mode, `>>>` always logical. Input base DEC / HEX / BIN / OCT (`F2`; in HEX mode `ff` is a number),
   literals `0xFF 0o17 0b101 0n10 'A' 'RIFF' 1_000 4K 2M f32(1.5) f64(0.1)`, variables, `ans`,
   history (`Fn+F`/`Fn+X`), a leading operator continues from `ans` (`&0xF0`, `>>4`).
-- **Functions**: `popcnt clz ctz parity bswap rev bit mask(n) mask(hi,lo) field(x,hi,lo) set clr tgl
+- **Functions**: `popcnt clz ctz parity bswap bswap16 wswap rev bit mask(n) mask(hi,lo) field(x,hi,lo) set clr tgl
   rol ror sext zext u8..u32 i8..i32 abs min max align isqrt log2 gcd`.
 - **Bit grid** (`Fn+X` from the input): move with `Z`/`C`, `Space` flips, `0`/`1` set, `I` inverts.
+- **Byte orders** (`F7` instead of the bit grid): the value as ABCD (as is / big-endian), DCBA
+  (little-endian), BADC (bytes swapped in 16-bit words) and CDAB (words swapped, the usual Modbus float
+  layout), each with its bytes, decimal and float; `Fn+X`, pick a row, `Enter` takes that order.
+  Functions `bswap` (BE ↔ LE), `bswap16`, `wswap`.
 - **Another reading** of the same bits (`F5`): ASCII chars, IEEE-754 float / double, Unix time
   (seconds or milliseconds, UTC).
 - **CRC page** (`Tab`): hex bytes or `"text\r\n"` → CRC-16/MODBUS, CRC-32, CRC-32C,

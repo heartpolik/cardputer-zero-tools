@@ -284,11 +284,33 @@ void test_parse_bytes() {
     check(r.ok && r.bytes.empty(), "empty");
 }
 
+void test_byte_orders() {
+    check(reorder(0x12345678, 32, ByteOrder::AsIs) == 0x12345678, "as is");
+    check(reorder(0x12345678, 32, ByteOrder::Reversed) == 0x78563412, "reversed");
+    check(reorder(0x12345678, 32, ByteOrder::ByteSwap16) == 0x34127856, "byte swap 16");
+    check(reorder(0x12345678, 32, ByteOrder::WordSwap16) == 0x56781234, "word swap 16");
+    check(reorder(0x1234, 16, ByteOrder::WordSwap16) == 0x1234, "word swap of one word");
+    check(reorder(0x1234, 16, ByteOrder::ByteSwap16) == 0x3412, "byte swap 16-bit");
+    check(reorder(0x0102030405060708ULL, 64, ByteOrder::WordSwap16) == 0x0708050603040102ULL, "word swap 64");
+    check(reorder(0x0102030405060708ULL, 64, ByteOrder::ByteSwap16) == 0x0201040306050807ULL, "byte swap 64");
+    check(order_label(32, ByteOrder::AsIs) == "ABCD", "label ABCD");
+    check(order_label(32, ByteOrder::Reversed) == "DCBA", "label DCBA");
+    check(order_label(32, ByteOrder::ByteSwap16) == "BADC", "label BADC");
+    check(order_label(32, ByteOrder::WordSwap16) == "CDAB", "label CDAB");
+    check(order_label(64, ByteOrder::WordSwap16) == "GHEFCDAB", "label 64 " + order_label(64, ByteOrder::WordSwap16));
+    check(byte_string(0x12AB, 16) == "12 AB", "byte string");
+    eq("wswap(0x12345678)", 0x56781234);
+    eq("bswap16(0x12345678)", 0x34127856);
+    // a Modbus float sent word-swapped: 1.5 = 0x3FC00000 arrives as 0x00003FC0
+    eq("wswap(0x00003FC0)", 0x3FC00000);
+}
+
 void test_session() {
     Session s;
     s.env.word = {16, true};
     s.env.input = Base::Hex;
     s.decode = Decode::Time;
+    s.show_orders = true;
     check(s.submit("val = ff").ok, "session submit");
     check(!s.submit("1 +").ok, "failed submit");
     check(s.history.size() == 1, "only successes in history");
@@ -300,6 +322,7 @@ void test_session() {
     check(t.env.word.width == 16 && t.env.word.is_signed, "word restored");
     check(t.env.input == Base::Hex, "base restored");
     check(t.decode == Decode::Time, "decode restored");
+    check(t.show_orders, "orders view restored");
     check(t.env.vars["val"] == 255 && t.ans() == 255, "vars restored");
     check(t.history.size() == 1 && t.history[0].input == "val = ff" && t.history[0].value == 255, "history restored");
     check(t.crc_input == "\"hi\tthere\"" && t.crc_selected == 3, "crc restored");
@@ -321,6 +344,7 @@ int main() {
     test_decode();
     test_checksums();
     test_parse_bytes();
+    test_byte_orders();
     test_session();
     std::printf("%d checks, %d failures\n", g_checks, g_failures);
     return g_failures ? 1 : 0;

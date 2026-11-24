@@ -26,6 +26,13 @@ const char* help_for(PageId id) {
                    "Space      flip    0 1  clear / set\n"
                    "I          invert  Esc  back to input\n"
                    "\n"
+                   "#63e2b7 BYTE ORDER# (F7 instead of the grid)\n"
+                   "ABCD as is (big-endian, Modbus data)\n"
+                   "DCBA reversed (little-endian: ARM, x86)\n"
+                   "BADC bytes swapped in 16-bit words\n"
+                   "CDAB 16-bit words swapped (Modbus float)\n"
+                   "Fn+X pick a row, Enter: use that order\n"
+                   "\n"
                    "#63e2b7 OPERATORS# (C precedence)\n"
                    "| ^ &  << >> (arith. in signed) >>>\n"
                    "+ - * / %   ~x  -x   a ** b (power)\n"
@@ -36,7 +43,8 @@ const char* help_for(PageId id) {
                    "HEX mode: ff = 255, 0b1 is hex\n"
                    "\n"
                    "#63e2b7 FUNCTIONS#\n"
-                   "popcnt clz ctz parity bswap rev\n"
+                   "popcnt clz ctz parity rev\n"
+                   "bswap (BE<>LE) bswap16 wswap\n"
                    "bit(n) mask(n) mask(hi,lo)\n"
                    "field(x,hi,lo) set clr tgl (x,n)\n"
                    "rol ror (x,n)  sext zext (x,bits)\n"
@@ -47,6 +55,7 @@ const char* help_for(PageId id) {
                    "F2 input base DEC/HEX/BIN/OCT\n"
                    "F3 width 8/16/32/64   F4 signed\n"
                    "F5 CHR / FLT / UTC row   F6 theme\n"
+                   "F7 bit grid / byte orders\n"
                    "Tab  BITS <> CRC    Fn+J screenshot\n"
                    "Sym = blue legends: & | ^ ~ < > ( )";
         case PageId::Crc:
@@ -218,6 +227,10 @@ bool BitApp::on_key(const cz::KeyEvent& ev) {
                 return true;
             case key::F(5):
                 session_.decode = bits::next_decode(session_.decode);
+                modes_changed();
+                return true;
+            case key::F(7):
+                session_.show_orders = !session_.show_orders;
                 modes_changed();
                 return true;
             case key::F(6): {

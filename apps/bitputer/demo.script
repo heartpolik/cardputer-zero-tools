@@ -3,5 +3,6 @@
 {f3}{f5}f64(-0.1){wait:150}{shot:@OUT@/float.png}{esc}
 {f5}1764000000{wait:150}{shot:@OUT@/time.png}{esc}
 {f3}{f3}{f4}{f2}ff00 >> 4{wait:150}{shot:@OUT@/signed.png}{esc}
+{f3}{f4}{f7}3FC0{down}{down}{down}{down}{wait:150}{shot:@OUT@/orders.png}{esc}{f7}{esc}
 {tab}01 03 00 00 00 0A{wait:150}{shot:@OUT@/crc.png}
 {f1}{wait:150}{shot:@OUT@/help.png}{quit}

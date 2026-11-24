@@ -71,6 +71,48 @@ std::string format_bin(uint64_t v, int width) {
     return out;
 }
 
+uint64_t reorder(uint64_t v, int width, ByteOrder order) {
+    const int n = width / 8;
+    uint8_t b[8];
+    for (int i = 0; i < n; ++i) b[i] = static_cast<uint8_t>(v >> ((n - 1 - i) * 8));  // b[0] = MSB
+    uint8_t out[8];
+    for (int i = 0; i < n; ++i) {
+        int src = i;
+        switch (order) {
+            case ByteOrder::AsIs: break;
+            case ByteOrder::Reversed: src = n - 1 - i; break;
+            case ByteOrder::ByteSwap16: src = n >= 2 ? (i ^ 1) : i; break;
+            case ByteOrder::WordSwap16: src = n >= 2 ? (n - 2 - (i & ~1)) + (i & 1) : i; break;
+        }
+        out[i] = b[src];
+    }
+    uint64_t r = 0;
+    for (int i = 0; i < n; ++i) r = (r << 8) | out[i];
+    return r;
+}
+
+std::string order_label(int width, ByteOrder order) {
+    const int n = width / 8;
+    uint64_t letters = 0;  // 'A'.. as bytes, then reordered like a value
+    for (int i = 0; i < n; ++i) letters = (letters << 8) | static_cast<uint64_t>('A' + i);
+    const uint64_t r = reorder(letters, width, order);
+    std::string out;
+    for (int i = n - 1; i >= 0; --i) out += static_cast<char>((r >> (i * 8)) & 0xFF);
+    return out;
+}
+
+std::string byte_string(uint64_t v, int width) {
+    static const char* digits = "0123456789ABCDEF";
+    std::string out;
+    for (int i = width / 8 - 1; i >= 0; --i) {
+        const unsigned b = static_cast<unsigned>((v >> (i * 8)) & 0xFF);
+        if (!out.empty()) out += ' ';
+        out += digits[b >> 4];
+        out += digits[b & 15];
+    }
+    return out;
+}
+
 std::string literal(uint64_t v, const Word& w, Base input) {
     v = w.wrap(v);
     switch (input) {

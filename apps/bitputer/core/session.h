@@ -19,6 +19,7 @@ struct Session {
 
     Env env;
     Decode decode{Decode::Chars};
+    bool show_orders{false};  // byte-order table instead of the bit grid
     std::vector<HistoryEntry> history;
     std::string crc_input;
     int crc_selected{0};

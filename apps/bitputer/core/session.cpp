@@ -49,6 +49,7 @@ std::string Session::serialize() const {
     o << "word\t" << env.word.width << '\t' << (env.word.is_signed ? 1 : 0) << '\n';
     o << "input\t" << base_name(env.input) << '\n';
     o << "decode\t" << decode_name(decode) << '\n';
+    o << "orders\t" << (show_orders ? 1 : 0) << '\n';
     for (const auto& [name, value] : env.vars) o << "var\t" << name << '\t' << hex(value) << '\n';
     for (const auto& h : history) o << "hist\t" << hex(h.value) << '\t' << h.input << '\n';
     o << "crcsel\t" << crc_selected << '\n';
@@ -75,6 +76,8 @@ void Session::deserialize(const std::string& text) {
             for (Decode d : {Decode::Chars, Decode::Float, Decode::Time}) {
                 if (f[1] == decode_name(d)) decode = d;
             }
+        } else if (k == "orders" && f.size() >= 2) {
+            show_orders = f[1] == "1";
         } else if (k == "var" && f.size() == 3) {
             env.vars[f[1]] = parse_u64(f[2]);
         } else if (k == "hist" && f.size() == 3) {

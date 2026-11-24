@@ -35,6 +35,18 @@ std::string format_oct(uint64_t v);  // 0o377
 // "0000 1111" (padded to the width, space every 4 digits)
 std::string format_bin(uint64_t v, int width);
 
+// Byte orders of a multi-byte value. Labels use A = the most significant byte
+// as given: ABCD (big-endian, as is), DCBA (little-endian, all bytes reversed),
+// BADC (bytes swapped inside each 16-bit word), CDAB (16-bit words reversed,
+// the usual "word swap" of Modbus floats).
+enum class ByteOrder { AsIs, Reversed, ByteSwap16, WordSwap16 };
+constexpr ByteOrder kByteOrders[] = {ByteOrder::AsIs, ByteOrder::Reversed, ByteOrder::ByteSwap16,
+                                     ByteOrder::WordSwap16};
+
+uint64_t reorder(uint64_t v, int width, ByteOrder order);
+std::string order_label(int width, ByteOrder order);  // "CDAB"
+std::string byte_string(uint64_t v, int width);       // "12 34 56 78"
+
 // A literal that the expression parser reads back in `input` base mode.
 std::string literal(uint64_t v, const Word& w, Base input);
 

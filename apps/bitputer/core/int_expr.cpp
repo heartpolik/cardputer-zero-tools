@@ -33,7 +33,9 @@ const std::vector<FunctionInfo> kFunctions = {
     {"clz", "x", "leading zeros (in the word)"},
     {"ctz", "x", "trailing zeros"},
     {"parity", "x", "1 if odd number of 1 bits"},
-    {"bswap", "x", "reverse byte order"},
+    {"bswap", "x", "reverse byte order (BE <-> LE)"},
+    {"bswap16", "x", "swap bytes in each 16-bit word"},
+    {"wswap", "x", "reverse 16-bit words (Modbus)"},
     {"rev", "x", "reverse bit order"},
     {"bit", "n", "1 << n"},
     {"mask", "n | hi,lo", "n low bits / bits hi..lo set"},
@@ -397,6 +399,8 @@ private:
         if (name == "parity") return need(1), static_cast<uint64_t>(__builtin_popcountll(x) & 1);
         if (name == "clz") return need(1), x == 0 ? W : static_cast<uint64_t>(__builtin_clzll(x) - (64 - W));
         if (name == "ctz") return need(1), x == 0 ? W : static_cast<uint64_t>(__builtin_ctzll(x));
+        if (name == "bswap16") return need(1), reorder(x, W, ByteOrder::ByteSwap16);
+        if (name == "wswap") return need(1), reorder(x, W, ByteOrder::WordSwap16);
         if (name == "bswap") {
             need(1);
             uint64_t r = 0;

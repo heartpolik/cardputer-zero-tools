@@ -22,6 +22,9 @@ public:
 
 private:
     bool on_grid_key(const cz::KeyEvent& ev);
+    bool on_orders_key(const cz::KeyEvent& ev);
+    int order_rows() const;  // byte orders worth showing for the word width
+    void refresh_orders();
     void submit();
     void history_step(int dir);
     void edit_value(uint64_t value);  // from the grid: input becomes this literal
@@ -56,6 +59,9 @@ private:
     lv_obj_t* grid_cursor_{nullptr};
     lv_obj_t* grid_rows_[2]{};
     lv_obj_t* grid_index_[2][8]{};
+    lv_obj_t* order_cursor_{nullptr};
+    lv_obj_t* order_rows_[4]{};
+    int order_sel_{0};
 };
 
 }  // namespace bit_ui

@@ -1,6 +1,8 @@
 #include "calc_page.h"
 
 #include <algorithm>
+#include <cstdio>
+#include <cstring>
 
 namespace bit_ui {
 namespace {
@@ -16,6 +18,7 @@ constexpr int kGridY = 101;
 constexpr int kGridRowStep = 26;
 constexpr int kLabelX = 8;
 constexpr int kValueX = 44;
+constexpr int kOrderRowStep = 13;
 
 const char* kNames[3] = {"HEX", "DEC", "OCT"};
 
@@ -68,6 +71,14 @@ void CalcPage::build(lv_obj_t* parent) {
     lv_obj_set_style_border_color(grid_cursor_, s.accent, 0);
     lv_obj_set_style_border_width(grid_cursor_, 1, 0);
     lv_obj_set_style_radius(grid_cursor_, 2, 0);
+    order_cursor_ = make_box(grid_box_, 4, 0, kWidth - 8, kOrderRowStep);
+    lv_obj_set_style_bg_color(order_cursor_, s.selection, 0);
+    lv_obj_set_style_radius(order_cursor_, 2, 0);
+    for (int r = 0; r < 4; ++r) {
+        order_rows_[r] = make_label(grid_box_, s.mono12, s.text);
+        lv_label_set_recolor(order_rows_[r], true);
+        lv_obj_set_pos(order_rows_[r], 8, r * kOrderRowStep - 1);
+    }
     for (int r = 0; r < 2; ++r) {
         grid_rows_[r] = make_label(grid_box_, s.mono12, s.dim);
         lv_label_set_recolor(grid_rows_[r], true);
@@ -160,9 +171,71 @@ void CalcPage::refresh_values() {
     lv_label_set_text(extras_[3], "");
 }
 
+int CalcPage::order_rows() const {
+    const int w = ctx_.session.env.word.width;
+    return w >= 32 ? 4 : w == 16 ? 2 : 0;
+}
+
+void CalcPage::refresh_orders() {
+    const auto& s = ctx_.style;
+    const auto& w = ctx_.session.env.word;
+    const uint64_t v = w.wrap(shown_value());
+    const int rows = order_rows();
+    const std::string dim = "#" + color_hex(s.dim) + " ";
+    const std::string acc = "#" + color_hex(s.accent) + " ";
+    for (int r = 0; r < 4; ++r) {
+        auto* l = order_rows_[r];
+        lv_obj_clear_flag(l, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_text_font(l, w.width == 64 ? s.ui10 : s.mono12, 0);
+        if (rows == 0) {
+            lv_label_set_text(l, r == 0 ? "1 byte: no byte order. F3 for a wider word" : "");
+            continue;
+        }
+        if (r >= rows) {
+            lv_label_set_text(l, "");
+            continue;
+        }
+        const auto order = bits::kByteOrders[r];
+        const uint64_t x = bits::reorder(v, w.width, order);
+        std::string line = dim + bits::order_label(w.width, order) + "# " + bits::byte_string(x, w.width) + "  ";
+        if (w.width == 16) {
+            line += acc + bits::format_dec(x, w, w.is_signed) + "#";
+        } else if (w.width == 32) {
+            char dec[24];
+            std::snprintf(dec, sizeof dec, "%-11s", bits::format_dec(x, w, w.is_signed).c_str());
+            line += dec + std::string(" ") + acc + bits::decode_float(x, 32).substr(4) + "#";
+        } else {
+            double d;
+            std::memcpy(&d, &x, sizeof d);
+            char f[32];
+            std::snprintf(f, sizeof f, "%.6g", d);  // the full value is on the FLT row (F5)
+            line += acc + f + "#";
+        }
+        lv_label_set_text(l, line.c_str());
+    }
+    if (grid_ && rows > 0) {
+        order_sel_ = std::min(order_sel_, rows - 1);
+        lv_obj_set_y(order_cursor_, order_sel_ * kOrderRowStep);
+        lv_obj_set_style_bg_opa(order_cursor_, LV_OPA_COVER, 0);
+    } else {
+        lv_obj_set_style_bg_opa(order_cursor_, LV_OPA_TRANSP, 0);
+    }
+}
+
 void CalcPage::refresh_grid() {
     if (!grid_box_) return;
     const auto& s = ctx_.style;
+    if (ctx_.session.show_orders) {
+        for (auto* l : grid_rows_) lv_obj_add_flag(l, LV_OBJ_FLAG_HIDDEN);
+        for (auto& row : grid_index_)
+            for (auto* l : row) lv_obj_add_flag(l, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_bg_opa(grid_cursor_, LV_OPA_TRANSP, 0);
+        lv_obj_set_style_border_opa(grid_cursor_, LV_OPA_TRANSP, 0);
+        refresh_orders();
+        return;
+    }
+    for (auto* l : order_rows_) lv_obj_add_flag(l, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_bg_opa(order_cursor_, LV_OPA_TRANSP, 0);
     const auto& w = ctx_.session.env.word;
     const uint64_t v = w.wrap(shown_value());
     const int cw = glyph_width(s.mono12);
@@ -220,6 +293,10 @@ void CalcPage::refresh_message() {
     if (!message_label_) return;
     const auto& s = ctx_.style;
     lv_obj_set_style_text_color(message_label_, s.dim, 0);
+    if (grid_ && ctx_.session.show_orders) {
+        lv_label_set_text(message_label_, "Fn+F/X row   Enter use this order   Esc back");
+        return;
+    }
     if (grid_) {
         const uint64_t v = ctx_.session.env.word.wrap(shown_value());
         lv_label_set_text_fmt(message_label_, "BIT %d = %d   SPC flip  0/1 set  I invert  ESC back", bit_,
@@ -244,7 +321,9 @@ void CalcPage::refresh_message() {
         lv_label_set_text(message_label_, message_.c_str());
         return;
     }
-    lv_label_set_text(message_label_, input_.empty() ? "ans   Fn+X bits   Fn+F history   F1 help" : "");
+    lv_label_set_text(message_label_, !input_.empty()                ? ""
+                                      : ctx_.session.show_orders ? "ans   Fn+X byte orders   F7 bits   F1 help"
+                                                                 : "ans   Fn+X bits   F7 byte orders   F1 help");
 }
 
 void CalcPage::submit() {
@@ -292,7 +371,41 @@ void CalcPage::edit_value(uint64_t value) {
     refresh();
 }
 
+bool CalcPage::on_orders_key(const cz::KeyEvent& ev) {
+    const auto& w = ctx_.session.env.word;
+    const bool press = ev.phase == cz::KeyPhase::Press;
+    const int rows = order_rows();
+    switch (ev.key) {
+        case key::Up:
+        case 'f':
+            if (order_sel_ > 0) --order_sel_;
+            else grid_ = false;
+            break;
+        case key::Down:
+        case 'x':
+            if (order_sel_ + 1 < rows) ++order_sel_;
+            break;
+        case key::Esc:
+        case key::Tab:
+            if (press) grid_ = false;
+            if (ev.key == key::Tab) return false;
+            break;
+        case key::Enter:
+        case ' ':
+            if (press && rows > 0) {
+                edit_value(bits::reorder(w.wrap(shown_value()), w.width, bits::kByteOrders[order_sel_]));
+                order_sel_ = 0;  // the new value is "as is" now
+            }
+            break;
+        default:
+            return true;
+    }
+    refresh();
+    return true;
+}
+
 bool CalcPage::on_grid_key(const cz::KeyEvent& ev) {
+    if (ctx_.session.show_orders) return on_orders_key(ev);
     const auto& w = ctx_.session.env.word;
     const uint64_t v = w.wrap(shown_value());
     const bool press = ev.phase == cz::KeyPhase::Press;
@@ -359,7 +472,7 @@ bool CalcPage::on_key(const cz::KeyEvent& ev) {
         case key::Down:
             if (hist_pos_ >= 0) {
                 history_step(1);
-            } else {
+            } else if (!ctx_.session.show_orders || order_rows() > 0) {
                 grid_ = true;
                 refresh();
             }
