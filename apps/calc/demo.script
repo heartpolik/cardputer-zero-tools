@@ -1,0 +1,14 @@
+2(3+4)^2{enter}
+r=4.7e3{enter}c=100e-9{enter}
+1/(2pi sqrt(r*c*r*c)){enter}
+f(x)=x^3-2x{enter}
+solve(f(x),1){enter}
+integ(sin(x),0,pi{enter}
+der(f(x),2
+{wait:200}{shot:@OUT@/calc.png}
+{up}{up}{wait:100}{shot:@OUT@/history.png}{esc}
+{tab}sin(x){enter}f{enter}x^2/4-3{wait:200}{shot:@OUT@/functions.png}
+{tab}{wait:300}{shot:@OUT@/graph.png}
+t{right}{right}{right}m{wait:300}{shot:@OUT@/trace.png}{esc}
+{f1}{wait:100}{shot:@OUT@/help.png}{esc}
+{wait:100}{quit}

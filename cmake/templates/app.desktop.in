@@ -1,9 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=@APP_DISPLAY_NAME@
-Comment=@APP_PACKAGE_DESCRIPTION@
-Exec=/usr/bin/@PROJECT_NAME@
-Icon=share/images/template.png
+Comment=@APP_SUMMARY@
+Exec=@APP_EXEC@
+Icon=@APP_DESKTOP_ICON@
 Terminal=false
-Categories=Utility;
-StartupNotify=false

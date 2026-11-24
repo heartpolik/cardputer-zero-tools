@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.31)
 
-project(template_app VERSION 0.2.1 LANGUAGES C CXX)
+project(cardputer_zero_tools LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,9 +18,8 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 # USE_DESKTOP: whether to build desktop emulator, useful when you want preview with LVGL simulator
 # For instance, '-DUSE_DESKTOP=OFF' suggest building for CM0
 set(USE_DESKTOP ON CACHE BOOL "Build the desktop emulator target with LVGL SDL support")
-set(APP_NAME "${PROJECT_NAME}" CACHE STRING "Application name used for installed asset lookup")
+set(CZ_APP "calc" CACHE STRING "Application to build and package (directory under apps/)")
 set(APP_ASSETS_ROOT "" CACHE PATH "Optional runtime assets root. Expected subdirectories include fonts/")
-set(APP_CONFIG_FILE "" CACHE FILEPATH "Application config file; defaults to the repository file on desktop and /etc/template-app.conf on device")
 set(APP_KEY_INPUT_DEVICE "" CACHE STRING "Optional Linux evdev keyboard/keypad device path, e.g. /dev/input/event0")
 set(APP_FRAMEBUFFER_DEVICE "/dev/fb0" CACHE STRING "Linux framebuffer device path used by embedded builds")
 set(APP_DRM_DEVICE "/dev/dri/card0" CACHE STRING "Linux DRM device path used when APP_USE_DRM=ON")
@@ -31,14 +30,6 @@ set(CM0_ALLOW_FETCH_DEPS ON CACHE BOOL "Allow downloading missing CM0 BSP/depend
 # Used for IDE IntelliSense
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Export compile_commands.json" FORCE)
 
-if(NOT APP_CONFIG_FILE)
-    if(USE_DESKTOP)
-        set(APP_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config/template-app.conf")
-    else()
-        set(APP_CONFIG_FILE "/etc/template-app.conf")
-    endif()
-endif()
-
 
 include(FetchContent)
 
@@ -46,7 +37,7 @@ include(FetchContent)
 # lvgl - main ui framework
 set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(CONFIG_LV_BUILD_DEMOS    OFF CACHE BOOL "" FORCE)
-set(LV_BUILD_CONF_PATH "${PROJECT_SOURCE_DIR}/src/config/lv_conf.h" CACHE PATH "" FORCE)
+set(LV_BUILD_CONF_PATH "${PROJECT_SOURCE_DIR}/common/src/config/lv_conf.h" CACHE PATH "" FORCE)
 
 # Manually download LVGL dependencies
 FetchContent_Declare(
@@ -393,241 +384,20 @@ else()
 
 endif()
 
-
-
 # ====================================================
-# Platform sources
+# Host tests (pure C++, no LVGL) - desktop builds only
 # ====================================================
-# Create application platform sources and static library
-file(GLOB_RECURSE PLATFORM_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/*.cpp"
-)
-
-add_library(${PROJECT_NAME}_platform 
-    STATIC
-    ${PLATFORM_SOURCES}
-)
-
-target_include_directories(${PROJECT_NAME}_platform
-    PUBLIC
-        ${LVGL_INCLUDE_DIR}
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform"
-)
-
-target_compile_definitions(${PROJECT_NAME}_platform
-    PUBLIC
-        APP_KEY_INPUT_DEVICE="${APP_KEY_INPUT_DEVICE}"
-        APP_FRAMEBUFFER_DEVICE="${APP_FRAMEBUFFER_DEVICE}"
-        APP_DRM_DEVICE="${APP_DRM_DEVICE}"
-        APP_DRM_CONNECTOR_ID=${APP_DRM_CONNECTOR_ID}
-)
-
-target_link_libraries(${PROJECT_NAME}_platform
-    PUBLIC
-        lvgl
-)
-
-# ====================================================
-# Model sources
-# ====================================================
-file(GLOB_RECURSE MODEL_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/model/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/model/*.cpp"
-)
-
-add_library(${PROJECT_NAME}_model
-    STATIC
-    ${MODEL_SOURCES}
-)
-
-target_include_directories(${PROJECT_NAME}_model
-    PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/model"
-)
-
-# ====================================================
-# View sources
-# ====================================================
-file(GLOB_RECURSE REACTIVE_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/reactive/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/reactive/*.cpp"
-)
-
-add_library(${PROJECT_NAME}_reactive
-    STATIC
-    ${REACTIVE_SOURCES}
-)
-
-target_include_directories(${PROJECT_NAME}_reactive
-    PUBLIC
-        ${LVGL_INCLUDE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/reactive
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/view
-)
-
-target_link_libraries(${PROJECT_NAME}_reactive
-    PUBLIC
-        lvgl
-)
-
-file(GLOB_RECURSE UI_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/view/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/view/*.cpp"  
-)
-
-add_library(${PROJECT_NAME}_view
-    STATIC
-    ${UI_SOURCES}
-)
-
-target_include_directories(${PROJECT_NAME}_view
-    PUBLIC
-        ${LVGL_INCLUDE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/view
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/view/screens
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/view/widgets
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/app
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/reactive
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/model
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/platform
-)
-
-target_link_libraries(${PROJECT_NAME}_view
-    PUBLIC
-        lvgl
-        ${PROJECT_NAME}_reactive
-        ${PROJECT_NAME}_platform
-)
-
-# ====================================================
-# ViewModel sources
-# ====================================================
-file(GLOB_RECURSE VIEWMODEL_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel/*.cpp"
-)
-
-add_library(${PROJECT_NAME}_viewmodel
-    STATIC
-    ${VIEWMODEL_SOURCES}
-)
-
-target_include_directories(${PROJECT_NAME}_viewmodel
-    PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel/"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/model"
-        ${LVGL_INCLUDE_DIR}
-)
-
-target_link_libraries(${PROJECT_NAME}_viewmodel
-    PUBLIC
-        lvgl
-        ${PROJECT_NAME}_reactive
-        ${PROJECT_NAME}_model
-        ${PROJECT_NAME}_platform
-)
-
-
-# ====================================================
-#   Core sources
-# - Application lifecycle management
-# - UI screen management
-# - UI asset management
-# - Reactive framework based on lvgl observer mode
-# - Logger based on fmt
-# ====================================================
-file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/app/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/app/*.cpp"
-)
-
-file(GLOB_RECURSE LOGGER_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/logger/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/logger/*.cpp"
-)
-
-add_library(logger STATIC
-    ${LOGGER_SOURCES}
-)
-
-target_include_directories(logger PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/logger
-    ${PLATFORM_INCLUDE_DIR}
-)
-
-target_link_libraries(logger
-    PUBLIC
-        fmt::fmt
-    PRIVATE
-        ${PLATFORM_LIBS}
-)
-
-add_library(${PROJECT_NAME}_core STATIC
-    ${APP_SOURCES}
-)
-
-target_include_directories(${PROJECT_NAME}_core
-    PUBLIC
-        ${LVGL_INCLUDE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/app
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/logger
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/view/screens
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/view/widgets
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/model
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/platform
-)
-
-target_compile_definitions(${PROJECT_NAME}_core
-    PUBLIC
-        APP_NAME="${APP_NAME}"
-        APP_CONFIG_FILE="${APP_CONFIG_FILE}"
-        APP_CMAKE_ASSETS_ROOT="${APP_ASSETS_ROOT}"
-        APP_SOURCE_ASSETS_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/assets"
-        APP_FRAMEBUFFER_DEVICE="${APP_FRAMEBUFFER_DEVICE}"
-        APP_DRM_DEVICE="${APP_DRM_DEVICE}"
-        APP_DRM_CONNECTOR_ID=${APP_DRM_CONNECTOR_ID}
-)
-
-target_link_libraries(${PROJECT_NAME}_core
-    PUBLIC
-        lvgl
-        logger
-        ${PROJECT_NAME}_view
-        ${PROJECT_NAME}_viewmodel
-        ${PROJECT_NAME}_platform
-)
-
 if(USE_DESKTOP)
-    target_link_libraries(${PROJECT_NAME}_core
-        PRIVATE
-            PNG::PNG
-    )
-    if(TARGET SDL2::SDL2)
-        target_link_libraries(${PROJECT_NAME}_core PRIVATE SDL2::SDL2)
-    else()
-        target_include_directories(${PROJECT_NAME}_core PRIVATE ${SDL2_INCLUDE_DIRS})
-        target_link_libraries(${PROJECT_NAME}_core PRIVATE ${SDL2_LIBRARIES})
-    endif()
+    enable_testing()
 endif()
 
 # ====================================================
-# main
+# Shared runtime + the selected application
 # ====================================================
-add_executable(${PROJECT_NAME}
-    src/main.cpp
-)
+add_subdirectory(common)
 
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        ${PROJECT_NAME}_platform
-        ${PROJECT_NAME}_core
-        ${PROJECT_NAME}_model
-        ${PROJECT_NAME}_view
-        ${PROJECT_NAME}_viewmodel
-)
-
-# Package deb
-include(cmake/cm0-package.cmake)
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/apps/${CZ_APP}/CMakeLists.txt")
+    message(FATAL_ERROR "Unknown app '${CZ_APP}': apps/${CZ_APP}/CMakeLists.txt not found")
+endif()
+message(STATUS "Building app: ${CZ_APP}")
+add_subdirectory(apps/${CZ_APP})

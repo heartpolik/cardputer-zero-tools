@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Dev helper for cardputer-zero-tools.
+#
+#   scripts/cz sim    [app]          build + run the desktop simulator
+#   scripts/cz test                  build + run host tests (ctest)
+#   scripts/cz deb    [app]          build an arm64 .deb in Docker -> dist/
+#   scripts/cz push   [app]          deb + copy to the device + install (asks for sudo password)
+#   scripts/cz run    [app] [script] run the installed app on the device over ssh
+#                                    (optional CZ_SCRIPT, e.g. '2+2{enter}{shot:/tmp/s.png}{quit}')
+#   scripts/cz shots  [app]          render README screenshots in the simulator -> docs/
+#
+# Env: CZ_HOST (default pi@192.168.1.215)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HOST="${CZ_HOST:-pi@192.168.1.215}"
+cmd="${1:-help}"
+app="${2:-calc}"
+bin="cz-${app}"
+
+log() { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
+
+sim_build() {
+    local preset="mac"
+    [[ -f "$ROOT/CMakeUserPresets.json" ]] || preset="darwin-arm64"
+    cmake --preset "$preset" -DCZ_APP="$app" >/dev/null
+    cmake --build "$ROOT/build/darwin-arm64" --config Debug
+}
+
+case "$cmd" in
+    sim)
+        cd "$ROOT"
+        sim_build
+        exec "$ROOT/build/darwin-arm64/apps/$app/Debug/$bin"
+        ;;
+    test)
+        cd "$ROOT"
+        sim_build
+        (cd "$ROOT/build/darwin-arm64" && ctest -C Debug --output-on-failure)
+        ;;
+    deb)
+        log "building $bin.deb (debian:trixie arm64 in Docker)"
+        docker image inspect cz-tools-build >/dev/null 2>&1 || docker build -t cz-tools-build "$ROOT/docker"
+        docker run --rm -v "$ROOT:/src" -w /src cz-tools-build bash -euc "
+            cmake -S . -B build/device-$app -G Ninja \
+                -DUSE_DESKTOP=OFF -DCZ_APP=$app -DCM0_SDK_ROOT=/ \
+                -DCMAKE_BUILD_TYPE=Release -DFETCHCONTENT_BASE_DIR=/src/.cache/device-deps >/dev/null
+            cmake --build build/device-$app
+            cd build/device-$app && cpack >/dev/null
+        "
+        ls -t "$ROOT"/dist/${bin}_*_arm64.deb | head -1
+        ;;
+    push)
+        "$0" deb "$app"
+        deb="$(ls -t "$ROOT"/dist/${bin}_*_arm64.deb | head -1)"
+        log "installing $(basename "$deb") on $HOST"
+        scp -q "$deb" "$HOST:/tmp/"
+        ssh -t "$HOST" "sudo apt-get install -y --reinstall /tmp/$(basename "$deb") && rm /tmp/$(basename "$deb")"
+        ;;
+    run)
+        script="${3:-}"
+        log "running $bin on $HOST (hold Esc or Ctrl+C to stop)"
+        ssh -t "$HOST" "CZ_SCRIPT='$script' /usr/bin/$bin"
+        ;;
+    shots)
+        cd "$ROOT"
+        sim_build
+        out="$ROOT/docs/$app"
+        mkdir -p "$out"
+        tmpcfg="$(mktemp -d)"
+        script_file="$ROOT/apps/$app/demo.script"
+        [[ -f "$script_file" ]] || { echo "no $script_file"; exit 1; }
+        script="$(sed "s|@OUT@|$out|g" "$script_file" | tr -d '\n')"
+        XDG_CONFIG_HOME="$tmpcfg" CZ_SCRIPT="$script" "$ROOT/build/darwin-arm64/apps/$app/Debug/$bin" >/dev/null
+        rm -rf "$tmpcfg"
+        ls "$out"
+        ;;
+    *)
+        sed -n '2,13p' "$0"
+        ;;
+esac
