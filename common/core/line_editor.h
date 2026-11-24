@@ -1,10 +1,10 @@
-// Single-line ASCII editor with a cursor (pure, host-tested).
+// Single-line ASCII editor with a cursor (pure C++, no LVGL; host-tested).
 #pragma once
 
 #include <cstddef>
 #include <string>
 
-namespace calc {
+namespace cz {
 
 class LineEditor {
 public:
@@ -60,4 +60,4 @@ private:
 //  * missing closing parentheses are appended: "sin(pi/2" -> "sin(pi/2)"
 std::string prepare_input(const std::string& input);
 
-}  // namespace calc
+}  // namespace cz

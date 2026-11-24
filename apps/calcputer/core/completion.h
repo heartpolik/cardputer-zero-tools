@@ -13,6 +13,9 @@
 
 namespace calc {
 
+using cz::LineEditor;
+using cz::prepare_input;
+
 struct Candidate {
     std::string name;
     bool call{false};  // function: insert "name()"

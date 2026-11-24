@@ -1,6 +1,10 @@
 # czkit: shared runtime for cardputer-zero-tools apps (derived from the
 # official CardputerZero Template, MIT, M5Stack Technology CO LTD).
 
+# czcore: pure C++ helpers shared by app cores (no LVGL, host-tested by the apps).
+add_library(czcore STATIC core/line_editor.cpp)
+target_include_directories(czcore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core")
+
 file(GLOB_RECURSE CZKIT_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"

@@ -2,7 +2,7 @@
 
 #include <cctype>
 
-namespace calc {
+namespace cz {
 
 void LineEditor::type(char c) {
     const char next = cursor_ < text_.size() ? text_[cursor_] : '\0';
@@ -60,4 +60,4 @@ std::string prepare_input(const std::string& input) {
     return s;
 }
 
-}  // namespace calc
+}  // namespace cz

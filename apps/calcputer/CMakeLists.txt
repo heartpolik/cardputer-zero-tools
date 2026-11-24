@@ -7,11 +7,11 @@ add_library(calc_core STATIC
     core/expr.cpp
     core/format.cpp
     core/engine.cpp
-    core/line_editor.cpp
     core/plot_math.cpp
     core/completion.cpp
 )
 target_include_directories(calc_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core")
+target_link_libraries(calc_core PUBLIC czcore)
 
 add_executable(cz-calcputer
     src/main.cpp
@@ -19,7 +19,6 @@ add_executable(cz-calcputer
     src/calc_page.cpp
     src/functions_page.cpp
     src/graph_page.cpp
-    src/style.cpp
 )
 target_link_libraries(cz-calcputer PRIVATE czkit calc_core)
 target_compile_definitions(cz-calcputer PRIVATE CALC_DEV_ASSETS="${CMAKE_CURRENT_SOURCE_DIR}/assets")

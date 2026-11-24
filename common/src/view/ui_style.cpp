@@ -1,6 +1,6 @@
-#include "style.h"
+#include "ui_style.h"
 
-namespace calc_ui {
+namespace cz {
 
 Style Style::make(bool dark, app::AssetManager& assets) {
     Style s;
@@ -66,4 +66,4 @@ lv_obj_t* make_label(lv_obj_t* parent, const lv_font_t* font, lv_color_t color, 
     return l;
 }
 
-}  // namespace calc_ui
+}  // namespace cz
