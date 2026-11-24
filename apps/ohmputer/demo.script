@@ -1,0 +1,6 @@
+103{wait:150}{shot:@OUT@/mark.png}{esc}2A104J{wait:150}{shot:@OUT@/mark-cap.png}{esc}4R7{wait:150}{shot:@OUT@/mark-rkm.png}
+{tab}472g{wait:150}{shot:@OUT@/bands.png} 4k99{wait:150}{shot:@OUT@/value-bands.png} 
+{tab}12{down}{down}1k{wait:150}{shot:@OUT@/ohm.png}
+{right}5{down}{down}{down}3.3{wait:150}{shot:@OUT@/divider.png}
+{right}5{enter}2{enter}20m{wait:150}{shot:@OUT@/led.png}
+{right}{right}{right}{wait:150}{shot:@OUT@/battery.png}{f1}{wait:150}{shot:@OUT@/help.png}{quit}

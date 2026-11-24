@@ -10,6 +10,8 @@
 ## Структура
 - `common/` → бібліотека `czkit`: `Runtime` (дисплей fbdev/SDL, тема + `~/.config/<app>/settings.conf`, toast, цикл, `CZ_SCRIPT`, `CZ_ASSETS`),
   `platform/key_decoder` (чистий, тести), `linux_input` (фази Press/Repeat/LongPress/Release, автоповтор наш, kernel repeat ігнорується).
+- `common/core/` → `czcore` (чистий C++: `cz::LineEditor`, `cz::prepare_input`), лінкується в ядра застосунків.
+  `common/src/view/ui_style` → `cz::Style` (палітра dark/light + JetBrains Mono з `common/assets/fonts`, ставиться в кожен пакет).
 - `apps/<app>/`: `core/` (чистий C++ без LVGL + `tests/`), `src/` (UI), `assets/`, `demo.script` (скріншоти README).
 - Збирається один застосунок за раз: `-DCZ_APP=<app>` (CPack на проєкт). `cmake/cz-package.cmake` → `cz_package_app()`.
 - `scripts/cz sim|test|shots|deb|push|run`.
@@ -37,6 +39,19 @@
 ## CalcPuter (apps/calcputer, пакет `cz-calcputer`)
 - `core/expr` (лексер/Pratt-парсер/AST/eval, спецформи `der/integ/solve/sum` по `x`), `format` (AUTO/SCI/ENG), `engine` (історія лише успішних,
   `ans`, змінні/функції, 4 слоти графіків, серіалізація в `~/.config/cz-calcputer/state.txt`), `line_editor` + `prepare_input` (`*2`→`ans*2`, автодужки),
-  `plot_math` (viewport, nice ticks, корені, екстремуми з уточненням по f'=0).
+  `plot_math` (viewport, nice ticks, корені, екстремуми з уточненням по f'=0). Редактор рядка — з `czcore`.
 - UI: `CalcApp` (статус-бар, Tab між CALC/Y=/GRAPH, F1 help, F2 DEG/RAD, F3 формат, F4 тема, F5 очистити історію),
   `GraphPage` малює в буфер canvas сам (Bresenham), не примітивами LVGL.
+
+## BitPuter (apps/bitputer, пакет `cz-bitputer`)
+- `core/word` (ширина 8/16/32/64, signed, формати HEX/DEC/OCT/BIN, `literal()` для вводу), `int_expr` (рекурсивний спуск, C-пріоритети,
+  усе обгортається до слова; у HEX-режимі слово з hex-цифр = число, `0b` там — hex; `0n` = десяткове), `decode` (CHR/FLT/UTC),
+  `checksum` (CRC за параметрами reveng, перевірено check-значеннями "123456789"), `session` (`~/.config/cz-bitputer/state.txt`).
+- UI: BITS (ввід, 4 рядки значень, бітова сітка: Fn+X з вводу) і CRC. F2 база, F3 ширина, F4 signed, F5 декодування, F6 тема.
+
+## OhmPuter (apps/ohmputer, пакет `cz-ohmputer`)
+- `core/si` (`4k7`, `2u2`, `4R7`, юніти ігноруються; m = мілі, M = мега), `eseries` (E6–E96, nearest, пара для подільника),
+  `marking` (кольорові смуги 3–6, IEC 60062; коди: 3/4-значні, EIA-96, RKM, конденсатори з напругою/допуском, танталові,
+  невеликий список SMD-кодів діодів/транзисторів — може бути неповним), `tools` (`Form`: введені поля + порядок редагування,
+  зайве найстаріше поле очищається; Ohm/DIV/LED/RC/LC/BATT), `session`.
+- UI: MARK / BANDS / TOOLS; F2 E-ряд, F6 тема. Кольори вводяться цифрами (0 чорний … 9 білий, G золото, S срібло).
