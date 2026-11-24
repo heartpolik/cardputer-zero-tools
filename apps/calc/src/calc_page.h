@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_context.h"
+#include "completion.h"
 #include "line_editor.h"
 
 #include <string>
@@ -31,6 +32,7 @@ private:
 
     AppContext& ctx_;
     calc::LineEditor input_;
+    calc::Completer completer_;
     int selected_{-1};  // index into engine.history, -1 = editing
     std::string message_;
     bool message_error_{false};

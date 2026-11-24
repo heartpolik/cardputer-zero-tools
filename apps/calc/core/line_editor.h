@@ -36,6 +36,20 @@ public:
     void end() { cursor_ = text_.size(); }
     void move_to(size_t pos) { cursor_ = pos > text_.size() ? text_.size() : pos; }
 
+    // Replaces [pos, pos+len) with s and puts the cursor at pos + cursor_offset.
+    void replace(size_t pos, size_t len, const std::string& s, size_t cursor_offset) {
+        if (pos > text_.size()) pos = text_.size();
+        text_.replace(pos, len, s);
+        move_to(pos + cursor_offset);
+    }
+
+    // Typing with paired parentheses:
+    //  '(' inserts "()" with the cursor inside (unless an identifier/number follows),
+    //  ')' steps over an existing ')' instead of inserting another one.
+    void type(char c);
+    // Backspace that also removes the ')' of an empty "()" pair.
+    void smart_backspace();
+
 private:
     std::string text_;
     size_t cursor_{0};

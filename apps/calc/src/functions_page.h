@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_context.h"
+#include "completion.h"
 #include "line_editor.h"
 
 #include <array>
@@ -35,6 +36,7 @@ private:
     std::array<calc::LineEditor, calc::Engine::kPlotSlots> edit_{};
     std::array<Row, calc::Engine::kPlotSlots> rows_{};
     size_t current_{0};
+    calc::Completer completer_;
 };
 
 }  // namespace calc_ui

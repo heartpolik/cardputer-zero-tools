@@ -18,6 +18,9 @@ const char* help_for(PageId id) {
         case PageId::Calc:
             return "#63e2b7 CALC#\n"
                    "Enter      evaluate (empty: repeat last)\n"
+                   "Space      complete name: sq -> sqrt(|)\n"
+                   "           again: next match (sin sinh..)\n"
+                   "(          inserts () ;  ) skips over )\n"
                    "Fn+F / X   browse history\n"
                    "  Enter    insert result   Space  expr\n"
                    "Esc        clear line (hold: quit)\n"
@@ -52,6 +55,7 @@ const char* help_for(PageId id) {
                    "  sin(x)   x^2-2   f   y=2x+1\n"
                    "Enter      next row / plot\n"
                    "Fn+F / X   previous / next row\n"
+                   "Space      complete names: co -> cos(|)\n"
                    "Esc        back to CALC\n"
                    "User functions from CALC work too:\n"
                    "  f(x)=x^3-x  then type  f";

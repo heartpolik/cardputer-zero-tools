@@ -4,6 +4,34 @@
 
 namespace calc {
 
+void LineEditor::type(char c) {
+    const char next = cursor_ < text_.size() ? text_[cursor_] : '\0';
+    if (c == ')' && next == ')') {
+        ++cursor_;
+        return;
+    }
+    if (c == '(') {
+        // wrapping existing text ("(|2+3") would be wrong: only pair before an operator/end/space/')'
+        const bool pair = next == '\0' || next == ')' || next == ' ' || next == ',' ||
+                          std::string("+-*/^%=").find(next) != std::string::npos;
+        if (pair) {
+            text_.insert(cursor_, "()");
+            ++cursor_;
+            return;
+        }
+    }
+    insert(c);
+}
+
+void LineEditor::smart_backspace() {
+    if (cursor_ > 0 && cursor_ < text_.size() && text_[cursor_ - 1] == '(' && text_[cursor_] == ')') {
+        text_.erase(cursor_ - 1, 2);
+        --cursor_;
+        return;
+    }
+    backspace();
+}
+
 std::string prepare_input(const std::string& input) {
     std::string s = input;
 

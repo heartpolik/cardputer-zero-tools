@@ -16,6 +16,9 @@ Small native apps for the [M5Stack CardputerZero](https://shop.m5stack.com/pages
 | ![functions](docs/calc/functions.png) | ![graph](docs/calc/graph.png) |
 | ![trace](docs/calc/trace.png) | ![help](docs/calc/help.png) |
 
+- **Fast input**: `Space` completes names (`sq` → `sqrt(|)`, again cycles `sin(` → `sinh(` → `sign(`;
+  user functions and variables first), `(` inserts a `()` pair, `)` steps over an existing one,
+  Backspace removes an empty pair.
 - **Expressions**: `+ - * / % ^ !`, implicit multiplication (`2pi`, `3(x+1)`, `2sqrt(2)`),
   `0x1F`, `0b101`, `1e-3`; a leading operator continues from `ans` (`*2`), missing `)` are closed
   on Enter, empty Enter repeats the last calculation.

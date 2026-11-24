@@ -1,4 +1,5 @@
 // Host tests for the calculator core. No framework: run the binary, non-zero exit on failure.
+#include "completion.h"
 #include "engine.h"
 #include "expr.h"
 #include "format.h"
@@ -319,6 +320,88 @@ void test_plot_math() {
     check(e && std::fabs(*e - M_PI / 2) < 1e-10 && is_max, "sin maximum at pi/2 (refined)");
 }
 
+void test_paired_parens() {
+    LineEditor ed;
+    ed.type('2');
+    ed.type('(');
+    check(ed.text() == "2()" && ed.cursor() == 2, "( inserts a pair: " + ed.text());
+    ed.type('3');
+    ed.type(')');
+    check(ed.text() == "2(3)" && ed.cursor() == 4, ") steps over: " + ed.text());
+    ed.type(')');
+    check(ed.text() == "2(3))", ") at end inserts");
+
+    ed.set("1+2");
+    ed.home();
+    ed.type('(');
+    check(ed.text() == "(1+2", "( before a number is not paired: " + ed.text());
+
+    ed.set("");
+    ed.type('(');
+    ed.smart_backspace();
+    check(ed.text().empty() && ed.cursor() == 0, "backspace removes an empty pair");
+    ed.set("(1)");
+    ed.smart_backspace();
+    check(ed.text() == "(1", "plain backspace otherwise");
+}
+
+void test_completion() {
+    Env env;
+    check(identifier_start("2si", 3) == 1, "identifier after digit");
+    check(identifier_start("x2", 2) == 0, "identifier with digit");
+    check(identifier_start("12", 2) == 2, "number is not an identifier");
+    check(identifier_start("a+b", 3) == 2, "identifier after operator");
+
+    auto c = complete("si", env);
+    check(!c.empty() && c[0].name == "sin" && c[0].call, "si -> sin first");
+    c = complete("sin", env);
+    check(c.size() >= 2 && c[0].name == "sin" && c[1].name == "sinh", "exact match first");
+    c = complete("p", env);
+    check(!c.empty() && c[0].name == "pi" && !c[0].call, "p -> pi value");
+
+    env.funcs["speed"] = UserFunction{{"t"}, parse_expression("2t"), "2t"};
+    env.vars["s0"] = 5;
+    c = complete("s", env);
+    check(c.size() >= 3 && c[0].name == "speed" && c[1].name == "s0" && c[2].name == "sin", "user names first");
+
+    Completer comp;
+    LineEditor ed;
+    ed.set("2sq");
+    check(comp.accept(ed, env) && ed.text() == "2sqrt()" && ed.cursor() == 6, "accept function: " + ed.text());
+    ed.type('9');
+    check(ed.text() == "2sqrt(9)", "type inside");
+
+    Env plain;
+    ed.set("si");
+    comp.reset();
+    comp.accept(ed, plain);
+    check(ed.text() == "sin()" && ed.cursor() == 4, "first candidate sin");
+    comp.accept(ed, plain);
+    check(ed.text() == "sinh()" && ed.cursor() == 5, "cycle to sinh: " + ed.text());
+    comp.accept(ed, plain);
+    check(ed.text() == "sign()", "cycle to sign: " + ed.text());
+
+    ed.set("pi");
+    comp.reset();
+    comp.accept(ed, plain);
+    check(ed.text() == "pi" && ed.cursor() == 2, "value without parens: " + ed.text());
+
+    ed.set("1+");
+    comp.reset();
+    check(!comp.accept(ed, plain), "nothing to complete after operator");
+
+    ed.set("ln(2)");
+    ed.move_to(1);  // inside the identifier
+    comp.reset();
+    check(!comp.accept(ed, plain), "no completion in the middle of a name");
+
+    ed.set("lo(2)");
+    ed.move_to(2);
+    comp.reset();
+    comp.accept(ed, plain);
+    check(ed.text() == "log(2)", "existing paren kept: " + ed.text());
+}
+
 void test_format() {
     fmt(0, NumberFormat::Auto, "0");
     fmt(5, NumberFormat::Auto, "5");
@@ -358,6 +441,8 @@ int main() {
         {"plots", test_plots},
         {"line editor", test_line_editor},
         {"plot math", test_plot_math},
+        {"paired parens", test_paired_parens},
+        {"completion", test_completion},
         {"format", test_format},
     };
     for (const auto& [name, fn] : suites) {

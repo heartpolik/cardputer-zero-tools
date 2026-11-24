@@ -49,6 +49,7 @@ void CalcPage::build(lv_obj_t* parent) {
     lv_obj_set_pos(preview_, kPadX, kPreviewY);
     lv_label_set_long_mode(preview_, LV_LABEL_LONG_MODE_DOTS);
     lv_obj_set_style_text_align(preview_, LV_TEXT_ALIGN_RIGHT, 0);
+    lv_label_set_recolor(preview_, true);
 
     input_box_ = make_box(parent, 6, kInputY, kWidth - 12, kInputH);
     lv_obj_set_style_bg_color(input_box_, s.surface, 0);
@@ -88,6 +89,7 @@ void CalcPage::on_engine_changed() {
 
 void CalcPage::insert(const std::string& text) {
     selected_ = -1;
+    completer_.reset();
     input_.insert(text);
     message_.clear();
     refresh_selection();
@@ -120,6 +122,7 @@ void CalcPage::submit() {
         return;
     }
     input_.clear();
+    completer_.reset();
     message_.clear();
     selected_ = -1;
     ctx_.mark_dirty();
@@ -215,6 +218,24 @@ void CalcPage::refresh_preview() {
         return;
     }
     lv_obj_set_style_text_color(preview_, s.dim, 0);
+
+    // name suggestions take the line while typing an identifier
+    const auto suggestions = completer_.suggestions(input_, ctx_.engine.env);
+    if (!suggestions.empty()) {
+        const size_t current = completer_.cycling() ? completer_.index() : 0;
+        char accent[8];
+        lv_snprintf(accent, sizeof(accent), "%06x", static_cast<unsigned>(lv_color_to_u32(s.accent) & 0xffffff));
+        std::string line = "SPC ";
+        for (size_t i = 0; i < suggestions.size(); ++i) {
+            const std::string name = suggestions[i].name + (suggestions[i].call ? "(" : "");
+            line += i == current ? std::string("#") + accent + " " + name + "# " : name + " ";
+        }
+        lv_obj_set_style_text_align(preview_, LV_TEXT_ALIGN_LEFT, 0);
+        lv_label_set_text(preview_, line.c_str());
+        return;
+    }
+    lv_obj_set_style_text_align(preview_, LV_TEXT_ALIGN_RIGHT, 0);
+
     if (input_.empty()) {
         lv_label_set_text(preview_, "");
         return;
@@ -232,7 +253,7 @@ void CalcPage::refresh_footer() {
     if (selected_ >= 0) {
         lv_label_set_text(footer_, "OK result  SPACE expr  Fn+F/X move  ESC back");
     } else {
-        lv_label_set_text(footer_, "OK =  Fn+F hist  TAB graph  F2 deg  Fn+H help");
+        lv_label_set_text(footer_, "OK =  SPC complete  Fn+F history  TAB graph");
     }
 }
 
@@ -286,7 +307,7 @@ bool CalcPage::on_key(const cz::KeyEvent& ev) {
             if (ev.phase == cz::KeyPhase::Press) submit();
             return true;
         case key::Backspace:
-            input_.backspace();
+            input_.smart_backspace();
             break;
         case key::Delete:
             input_.del();
@@ -310,9 +331,18 @@ bool CalcPage::on_key(const cz::KeyEvent& ev) {
             break;
         default:
             if (!platform::key::is_printable(k)) return false;
-            input_.insert(static_cast<char>(k));
+            if (k == ' ') {
+                // Space completes names; a plain space only when there is nothing to complete
+                if (!completer_.accept(input_, ctx_.engine.env)) input_.insert(' ');
+                message_.clear();
+                refresh_input();
+                refresh_preview();
+                return true;
+            }
+            input_.type(static_cast<char>(k));
             break;
     }
+    completer_.reset();
     message_.clear();
     refresh_input();
     refresh_preview();

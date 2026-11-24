@@ -1,6 +1,6 @@
 # cz-calc: engineering calculator with graphs.
 
-set(CALC_VERSION 0.1.0)
+set(CALC_VERSION 0.2.0)
 
 # Pure C++ core (no LVGL): expression language, formatting, session, plot math.
 add_library(calc_core STATIC
@@ -9,6 +9,7 @@ add_library(calc_core STATIC
     core/engine.cpp
     core/line_editor.cpp
     core/plot_math.cpp
+    core/completion.cpp
 )
 target_include_directories(calc_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core")
 

@@ -40,13 +40,14 @@ void FunctionsPage::build(lv_obj_t* parent) {
         lv_obj_set_style_bg_color(r.cursor, s.accent, 0);
 
         r.error = make_label(r.box, s.ui10, s.error);
+        lv_label_set_recolor(r.error, true);
         lv_obj_set_width(r.error, kWidth - 8 - kTextX - 4);
         lv_label_set_long_mode(r.error, LV_LABEL_LONG_MODE_DOTS);
         lv_obj_set_pos(r.error, kTextX, 19);
     }
 
     auto* footer = make_label(parent, s.ui10, s.dim,
-                              "OK next/plot   Fn+F/X row   TAB graph   ESC calc");
+                              "OK next/plot  SPC complete  Fn+F/X row  TAB graph");
     lv_obj_set_pos(footer, 8, kFooterY + 2);
 
     load_from_engine();
@@ -88,6 +89,24 @@ void FunctionsPage::refresh_row(size_t i) {
     const int offset = cursor_x > visible ? cursor_x - visible : 0;
     lv_obj_set_x(r.text, kTextX - offset);
     lv_obj_set_x(r.cursor, kTextX - offset + cursor_x - 1);
+
+    // the active row shows name suggestions while an identifier is typed
+    if (active) {
+        const auto sug = completer_.suggestions(edit_[i], ctx_.engine.env);
+        if (!sug.empty()) {
+            const size_t current = completer_.cycling() ? completer_.index() : 0;
+            char accent[8];
+            lv_snprintf(accent, sizeof(accent), "%06x", static_cast<unsigned>(lv_color_to_u32(s.accent) & 0xffffff));
+            std::string line = "SPC ";
+            for (size_t k = 0; k < sug.size(); ++k) {
+                const std::string name = sug[k].name + (sug[k].call ? "(" : "");
+                line += k == current ? std::string("#") + accent + " " + name + "# " : name + " ";
+            }
+            lv_obj_set_style_text_color(r.error, s.dim, 0);
+            lv_label_set_text(r.error, line.c_str());
+            return;
+        }
+    }
 
     std::string error;
     if (!text.empty() && !ctx_.engine.compile_plot(text, &error)) {
@@ -132,7 +151,7 @@ bool FunctionsPage::on_key(const cz::KeyEvent& ev) {
             commit_row(current_);
             ctx_.go(PageId::Calc);
             return true;
-        case key::Backspace: ed.backspace(); break;
+        case key::Backspace: ed.smart_backspace(); break;
         case key::Delete: ed.del(); break;
         case key::Left: ed.left(); break;
         case key::Right: ed.right(); break;
@@ -140,9 +159,16 @@ bool FunctionsPage::on_key(const cz::KeyEvent& ev) {
         case key::End: ed.end(); break;
         default:
             if (!key::is_printable(ev.key)) return false;
-            ed.insert(static_cast<char>(ev.key));
+            if (ev.key == ' ') {
+                if (!completer_.accept(ed, ctx_.engine.env)) ed.insert(' ');
+                commit_row(current_);
+                refresh_row(current_);
+                return true;
+            }
+            ed.type(static_cast<char>(ev.key));
             break;
     }
+    completer_.reset();
     commit_row(prev);
     refresh_row(prev);
     refresh_row(current_);
