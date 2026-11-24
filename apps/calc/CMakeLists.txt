@@ -1,6 +1,6 @@
 # cz-calc: engineering calculator with graphs.
 
-set(CALC_VERSION 0.2.0)
+set(CALC_VERSION 0.2.1)
 
 # Pure C++ core (no LVGL): expression language, formatting, session, plot math.
 add_library(calc_core STATIC
@@ -33,7 +33,7 @@ endif()
 include("${PROJECT_SOURCE_DIR}/cmake/cz-package.cmake")
 cz_package_app(
     TARGET       cz-calc
-    DISPLAY_NAME "Calc"
+    DISPLAY_NAME "CalcPuter"
     VERSION      ${CALC_VERSION}
     SUMMARY      "Engineering calculator with function graphs"
     ICON         assets/images/cz-calc.png

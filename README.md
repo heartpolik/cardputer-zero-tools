@@ -6,9 +6,9 @@ Small native apps for the [M5Stack CardputerZero](https://shop.m5stack.com/pages
 
 | App | What it is |
 |---|---|
-| [`calc`](apps/calc) | Engineering calculator: expressions, variables, user functions, calculus, function graphs with trace / roots / extrema |
+| [`calc`](apps/calc) | **CalcPuter** — engineering calculator: expressions, variables, user functions, calculus, function graphs with trace / roots / extrema |
 
-## Calc
+## CalcPuter (`apps/calc`)
 
 | | |
 |---|---|
@@ -95,7 +95,7 @@ permissions). Publishing uses the official [`czdev`](https://github.com/Cardpute
 git clone https://github.com/CardputerZero/AppBuilder ~/Developer/cz-appbuilder
 ~/Developer/cz-appbuilder/czdev login                      # GitHub device flow, once
 scripts/cz deb calc && scripts/cz store-check calc          # optional pre-check against the registry rules
-cd apps/calc && ~/Developer/cz-appbuilder/czdev publish --deb ../../dist/cz-calc_0.2.0-1_arm64.deb
+cd apps/calc && ~/Developer/cz-appbuilder/czdev publish --deb ../../dist/cz-calc_0.2.1-1_arm64.deb
 ```
 
 `czdev publish` uploads the `.deb` and opens a metadata PR against

@@ -34,7 +34,7 @@
 - ASan на цьому macOS падає на старті → тести з `-fsanitize=undefined`.
 - Переглядач скріншотів у Claude кешує за шляхом — для повторного перегляду копіювати під новим іменем.
 
-## Calc (apps/calc)
+## CalcPuter (apps/calc, пакет `cz-calc`)
 - `core/expr` (лексер/Pratt-парсер/AST/eval, спецформи `der/integ/solve/sum` по `x`), `format` (AUTO/SCI/ENG), `engine` (історія лише успішних,
   `ans`, змінні/функції, 4 слоти графіків, серіалізація в `~/.config/cz-calc/state.txt`), `line_editor` + `prepare_input` (`*2`→`ans*2`, автодужки),
   `plot_math` (viewport, nice ticks, корені, екстремуми з уточненням по f'=0).
