@@ -71,6 +71,20 @@ the device:
 ssh pi@<ip> "CZ_SCRIPT='2+2{enter}{shot:/tmp/s.png}{quit}' cz-calc"
 ```
 
+### CI and releases
+
+`.github/workflows/build.yml` runs on every push / PR: host tests and an arm64 `.deb` per app,
+built on GitHub's arm64 runner inside `debian:trixie` (artifacts on the run page).
+
+Release an app by bumping its version in `apps/<app>/CMakeLists.txt` and pushing a matching tag:
+
+```sh
+git tag calc-v0.2.0 && git push origin calc-v0.2.0
+```
+
+The workflow checks that the tag matches the version and publishes a GitHub release with the `.deb`.
+Install on the device: `sudo apt install ./cz-calc_<version>-1_arm64.deb`.
+
 ### Adding an app
 
 1. `apps/<name>/CMakeLists.txt` with an executable linked to `czkit` and a `cz_package_app(...)` call

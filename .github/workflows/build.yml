@@ -1,0 +1,121 @@
+# Build + test every app; on a tag "<app>-v<version>" (e.g. calc-v0.2.0) also
+# publish a GitHub release with that app's arm64 .deb.
+#
+# Packages are built natively on GitHub's arm64 runner inside debian:trixie,
+# the same OS as the CardputerZero image.
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["*-v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  apps:
+    name: list apps
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.list.outputs.list }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            app="${GITHUB_REF_NAME%-v*}"
+            [[ -f "apps/$app/CMakeLists.txt" ]] || { echo "::error::tag $GITHUB_REF_NAME: no apps/$app"; exit 1; }
+            echo "list=[\"$app\"]" >> "$GITHUB_OUTPUT"
+          else
+            echo "list=$(ls apps | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: ${{ matrix.app }}
+    needs: apps
+    runs-on: ubuntu-24.04-arm
+    container: debian:trixie
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.apps.outputs.list) }}
+    steps:
+      - name: Toolchain
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build git ca-certificates file dpkg-dev \
+            libfreetype-dev libpng-dev libjpeg62-turbo-dev zlib1g-dev libfmt-dev libsdl2-dev
+
+      - uses: actions/checkout@v4
+
+      - name: Version matches tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          v="$(scripts/cz version ${{ matrix.app }})"
+          if [ "$GITHUB_REF_NAME" != "${{ matrix.app }}-v$v" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match apps/${{ matrix.app }} version $v"
+            exit 1
+          fi
+
+      - name: Host tests
+        run: |
+          cmake -S . -B build/host -G Ninja -DUSE_DESKTOP=ON -DCZ_APP=${{ matrix.app }} \
+            -DCMAKE_BUILD_TYPE=Debug -DFETCHCONTENT_BASE_DIR="$PWD/.cache/host-deps"
+          cmake --build build/host
+          ctest --test-dir build/host --output-on-failure
+
+      - name: Debian package (arm64)
+        run: scripts/cz deb-native ${{ matrix.app }}
+
+      - name: Inspect package
+        run: |
+          for deb in dist/*.deb; do dpkg-deb -I "$deb"; dpkg-deb -c "$deb"; done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cz-${{ matrix.app }}-deb
+          path: dist/*.deb
+          if-no-files-found: error
+
+  release:
+    name: release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          app="${GITHUB_REF_NAME%-v*}"
+          version="${GITHUB_REF_NAME##*-v}"
+          deb="$(ls dist/*.deb | head -1)"
+          cat > notes.md <<EOF
+          Install on the CardputerZero:
+
+          \`\`\`sh
+          wget https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/$(basename "$deb")
+          sudo apt install ./$(basename "$deb")
+          \`\`\`
+
+          EOF
+          gh release create "$GITHUB_REF_NAME" dist/*.deb \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "cz-$app $version" \
+            --notes-file notes.md \
+            --generate-notes

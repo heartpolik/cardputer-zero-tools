@@ -4,7 +4,9 @@
 #   scripts/cz sim    [app]          build + run the desktop simulator
 #   scripts/cz test                  build + run host tests (ctest)
 #   scripts/cz deb    [app]          build an arm64 .deb in Docker -> dist/
-#   scripts/cz push   [app]          deb + copy to the device + install (asks for sudo password)
+#   scripts/cz deb-native [app]      same, directly (inside arm64 Debian trixie: Docker/CI)
+#   scripts/cz version [app]         print the app version from its CMakeLists.txt
+#   scripts/cz push   [app]          deb + copy to the device + install
 #   scripts/cz run    [app] [script] run the installed app on the device over ssh
 #                                    (optional CZ_SCRIPT, e.g. '2+2{enter}{shot:/tmp/s.png}{quit}')
 #   scripts/cz shots  [app]          render README screenshots in the simulator -> docs/
@@ -41,14 +43,21 @@ case "$cmd" in
     deb)
         log "building $bin.deb (debian:trixie arm64 in Docker)"
         docker image inspect cz-tools-build >/dev/null 2>&1 || docker build -t cz-tools-build "$ROOT/docker"
-        docker run --rm -v "$ROOT:/src" -w /src cz-tools-build bash -euc "
-            cmake -S . -B build/device-$app -G Ninja \
-                -DUSE_DESKTOP=OFF -DCZ_APP=$app -DCM0_SDK_ROOT=/ \
-                -DCMAKE_BUILD_TYPE=Release -DFETCHCONTENT_BASE_DIR=/src/.cache/device-deps >/dev/null
-            cmake --build build/device-$app
-            cd build/device-$app && cpack >/dev/null
-        "
+        docker run --rm -v "$ROOT:/src" -w /src cz-tools-build scripts/cz deb-native "$app"
+        ;;
+    deb-native)
+        # inside an arm64 Debian trixie environment (Docker image above, or CI)
+        cd "$ROOT"
+        cmake -S . -B "build/device-$app" -G Ninja \
+            -DUSE_DESKTOP=OFF -DCZ_APP="$app" -DCM0_SDK_ROOT=/ \
+            -DCMAKE_BUILD_TYPE=Release -DFETCHCONTENT_BASE_DIR="$ROOT/.cache/device-deps" >/dev/null
+        cmake --build "build/device-$app"
+        (cd "build/device-$app" && cpack >/dev/null)
         ls -t "$ROOT"/dist/${bin}_*_arm64.deb | head -1
+        ;;
+    version)
+        # version declared in apps/<app>/CMakeLists.txt: set(<NAME>_VERSION x.y.z)
+        sed -nE 's/^set\([A-Z_]+_VERSION ([0-9][0-9.]*)\).*/\1/p' "$ROOT/apps/$app/CMakeLists.txt" | head -1
         ;;
     push)
         "$0" deb "$app"
@@ -87,6 +96,6 @@ case "$cmd" in
         ls "$out"
         ;;
     *)
-        sed -n '2,13p' "$0"
+        sed -n '2,15p' "$0"
         ;;
 esac
