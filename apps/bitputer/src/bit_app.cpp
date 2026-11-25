@@ -88,6 +88,10 @@ BitApp::BitApp(cz::Runtime& rt)
            }} {
     load();
     build();
+    rt_.set_layer_handler([this](cz::LayerState s) {
+        refresh_layer_bar();  // labels can depend on modes and the page
+        layer_bar_.show_layer(s);
+    });
     save_timer_ = lv_timer_create(
         [](lv_timer_t* t) {
             auto* self = static_cast<BitApp*>(lv_timer_get_user_data(t));
@@ -97,6 +101,7 @@ BitApp::BitApp(cz::Runtime& rt)
 }
 
 BitApp::~BitApp() {
+    rt_.set_layer_handler(nullptr);
     if (save_timer_) lv_timer_delete(save_timer_);
     save();
     destroy();
@@ -131,6 +136,12 @@ void BitApp::build() {
         pages_[i] = make_box(root_, 0, kStatusHeight, kWidth, kContentH);
         page(static_cast<PageId>(i)).build(pages_[i]);
     }
+
+    layer_bar_ = cz::ShortcutBar{};
+    layer_bar_.build(root_, style_);
+    layer_bar_.set_auto_hide(true);
+    refresh_layer_bar();
+    layer_bar_.show_layer(rt_.key_layer());
 
     help_ = make_box(root_, 0, 0, kWidth, kHeight);
     lv_obj_set_style_bg_color(help_, style_.bg, 0);
@@ -176,6 +187,14 @@ void BitApp::modes_changed() {
     refresh_status();
     calc_->on_mode_changed();
     crc_->on_mode_changed();
+}
+
+// what 4..8 do with Fn (F4..F8 = Fn + 4..8); Shift / Sym show the typed characters
+void BitApp::refresh_layer_bar() {
+    layer_bar_.set(4, session_.env.word.is_signed ? "unsigned" : "signed", true, cz::KeyLayer::Fn);
+    layer_bar_.set(5, "decode", true, cz::KeyLayer::Fn);
+    layer_bar_.set(6, "theme", true, cz::KeyLayer::Fn);
+    layer_bar_.set(7, session_.show_orders ? "bit grid" : "orders", true, cz::KeyLayer::Fn);
 }
 
 void BitApp::toggle_help() {

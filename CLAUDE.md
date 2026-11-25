@@ -36,6 +36,13 @@
   (`appstore_shortcut_bar.cpp`): центри x = 48/104/160/216/272, кольори 4 жовтий, 5 синій, 6 зелений, 7 фіолетовий,
   8 помаранчевий; 4 — «назад», 8 — головна дія; недоступне сіре. Не для екранів, де цифри — введення (калькулятори, BANDS, MODBUS).
   Зараз: SerialPuter PORT (4 ports, 6 log, 8 open/close), DiscPuter.
+- Шари: `platform::ModifierWatch` (у Runtime, опитування кожні 80 мс) читає стан Shift/Fn/Sym з M5IOE1 (I²C 0x4F, рег. 0xBD/0xBE/0xBF,
+  0 off / 1 once / 3 lock; `I2C_SLAVE_FORCE` + лише SMBus byte reads, працює від `pi` у групі i2c). `Runtime::set_layer_handler` →
+  `ShortcutBar::show_layer`. Підписи на шар: `set(key, text, enabled, KeyLayer::Fn)`; без підпису показується, що клавіша друкує
+  (Shift `$ % ^ & *`, Sym `' ` \ , .` — з `linux,keymap1` пристрою, Fn `F4..F8`). `set_auto_hide(true)` — рядок лише поки шар активний
+  (калькулятори, SerialPuter). Десктоп: Shift/Ctrl(=Fn)/Alt(=Sym) з SDL; скрипти: `{layer:fn}`, `{layer:sym!}` (зафіксований), `{layer:base}`.
+- Grove 5 V і режим Grove керуються LED-класом: `/sys/class/leds/grove_5v_out` (за замовч. 0 = вимкнено!), `grove_fun`,
+  `ext_5v_out`, `ext_usb_gpio_fun` (група gpio може писати).
 
 ## Підводні камені
 - `lv_delay_ms()` без delay-callback — busy-wait (~90% CPU). У циклі `sleep_for` (вже в `Runtime::run`).

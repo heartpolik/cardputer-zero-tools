@@ -86,6 +86,10 @@ CalcApp::CalcApp(cz::Runtime& rt)
            [this] { refresh_status(); }} {
     load();
     build();
+    rt_.set_layer_handler([this](cz::LayerState s) {
+        refresh_layer_bar();  // labels can depend on modes and the page
+        layer_bar_.show_layer(s);
+    });
     save_timer_ = lv_timer_create(
         [](lv_timer_t* t) {
             auto* self = static_cast<CalcApp*>(lv_timer_get_user_data(t));
@@ -95,6 +99,7 @@ CalcApp::CalcApp(cz::Runtime& rt)
 }
 
 CalcApp::~CalcApp() {
+    rt_.set_layer_handler(nullptr);
     if (save_timer_) lv_timer_delete(save_timer_);
     save();
     destroy();
@@ -140,6 +145,12 @@ void CalcApp::build() {
         page(static_cast<PageId>(i)).build(pages_[i]);
     }
 
+    layer_bar_ = cz::ShortcutBar{};
+    layer_bar_.build(root_, style_);
+    layer_bar_.set_auto_hide(true);
+    refresh_layer_bar();
+    layer_bar_.show_layer(rt_.key_layer());
+
     help_ = make_box(root_, 0, 0, kWidth, kHeight);
     lv_obj_set_style_bg_color(help_, style_.bg, 0);
     lv_obj_set_style_bg_opa(help_, LV_OPA_COVER, 0);
@@ -180,6 +191,12 @@ void CalcApp::refresh_status() {
     std::snprintf(buf, sizeof(buf), "%s  %s", engine_.env.angle == calc::AngleMode::Deg ? "DEG" : "RAD",
                   calc::format_name(engine_.format));
     lv_label_set_text(mode_label_, buf);
+}
+
+// what 4..8 do with Fn (F4..F8 = Fn + 4..8); Shift / Sym show the typed characters
+void CalcApp::refresh_layer_bar() {
+    layer_bar_.set(4, "theme", true, cz::KeyLayer::Fn);
+    layer_bar_.set(5, "clear", true, cz::KeyLayer::Fn);
 }
 
 void CalcApp::toggle_help() {

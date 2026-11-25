@@ -39,6 +39,7 @@ struct Runtime::Impl {
     std::unique_ptr<app::DesktopSimulatorFrame> frame;
 #endif
     lv_observer_t* theme_observer{nullptr};
+    platform::ModifierWatch modifiers;
 };
 
 namespace {
@@ -151,10 +152,19 @@ bool Runtime::init() {
     toast_->build();
 
     platform::set_key_listener(&Runtime::key_listener, this);
+    // modifier layer: a few byte reads every 80 ms
+    lv_timer_create([](lv_timer_t* t) { static_cast<Runtime*>(lv_timer_get_user_data(t))->poll_layer(); }, 80, this);
     if (const char* script = std::getenv("CZ_SCRIPT"); script && script[0]) start_script(script);
     LOG_INFO("{} started at {}x{}", app_name_, lv_display_get_horizontal_resolution(display_),
              lv_display_get_vertical_resolution(display_));
     return true;
+}
+
+void Runtime::poll_layer() {
+    const LayerState now = impl_->modifiers.read();
+    if (now == layer_) return;
+    layer_ = now;
+    if (layer_handler_) layer_handler_(now);
 }
 
 bool Runtime::dark_mode() const { return lv_subject_get_int(const_cast<lv_subject_t*>(&dark_mode_)) != 0; }
@@ -253,6 +263,18 @@ void Runtime::script_step() {
         lv_refr_now(display_);
         const auto r = platform::screenshot::capture_active_screen(token.substr(5));
         LOG_INFO("script screenshot {}: {}", token.substr(5), r.success ? "ok" : r.error);
+    } else if (token.rfind("layer:", 0) == 0) {
+        // {layer:fn} {layer:sym} {layer:shift} pretend a modifier (add "!" for locked), {layer:base} ends it
+        const std::string l = token.substr(6);
+        const bool locked = !l.empty() && l.back() == '!';
+        const std::string name = locked ? l.substr(0, l.size() - 1) : l;
+        if (name == "base" || name == "auto") {
+            impl_->modifiers.clear_force();
+        } else {
+            const KeyLayer layer = name == "fn" ? KeyLayer::Fn : name == "sym" ? KeyLayer::Sym : KeyLayer::Shift;
+            impl_->modifiers.force({layer, locked});
+        }
+        poll_layer();
     } else if (token == "quit") {
         quit();
     } else {

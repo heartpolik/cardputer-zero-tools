@@ -5,6 +5,8 @@
 #include "port_page.h"
 #include "term_page.h"
 
+#include "shortcut_bar.h"
+
 #include <memory>
 
 namespace ser_ui {
@@ -23,6 +25,7 @@ private:
     void show(PageId id);
     void refresh_status();
     void toggle_help();
+    void refresh_layer_bar();
     void load();
     Page& page(PageId id);
 
@@ -46,6 +49,7 @@ private:
     lv_obj_t* port_label_{nullptr};
     lv_obj_t* pages_[kPageCount]{};
     lv_obj_t* help_{nullptr};
+    cz::ShortcutBar layer_bar_;  // keys 4..8 while Fn / Sym / Shift is active
     lv_obj_t* help_text_{nullptr};
 };
 

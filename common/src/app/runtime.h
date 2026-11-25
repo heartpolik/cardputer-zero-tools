@@ -10,6 +10,7 @@
 //   CZ_ASSETS=/path/to/share/<app>   (asset root override)
 // tokens: {enter} {tab} {stab} {esc} {bs} {del} {up} {down} {left} {right}
 //         {home} {end} {help} {f1}..{f12} {wait:ms} {shot:path} {quit}  ("{{" = '{')
+//         {layer:fn} {layer:sym!} {layer:shift} {layer:base}  pretend a modifier layer (! = locked)
 //
 // Global keys handled here unless the app consumes them first:
 //   PrintScreen (Fn+J)  screenshot
@@ -18,6 +19,7 @@
 
 #include "asset_manager.h"
 #include "linux_input.h"
+#include "modifier_watch.h"
 #include "lvgl.h"
 #include "toast.h"
 
@@ -28,7 +30,9 @@
 
 namespace cz {
 
+using platform::KeyLayer;
 using platform::KeyPhase;
+using platform::LayerState;
 
 struct KeyEvent {
     uint32_t key;
@@ -62,6 +66,11 @@ public:
     // Return true when handled. Unhandled keys fall through to runtime globals.
     void set_key_handler(std::function<bool(const KeyEvent&)> handler) { handler_ = std::move(handler); }
 
+    // The layer the next key lands in: Fn / Sym / Shift tapped (once) or locked on the
+    // built-in keyboard. The handler runs on the UI thread when it changes.
+    LayerState key_layer() const { return layer_; }
+    void set_layer_handler(std::function<void(LayerState)> handler) { layer_handler_ = std::move(handler); }
+
     // ~/.config/<app>/ (created on demand); app state files live here.
     std::filesystem::path state_dir() const;
 
@@ -82,6 +91,9 @@ private:
     std::unique_ptr<view::widgets::Toast> toast_;
     lv_subject_t dark_mode_{};
     std::function<bool(const KeyEvent&)> handler_;
+    std::function<void(LayerState)> layer_handler_;
+    LayerState layer_;
+    void poll_layer();
     bool running_{false};
     std::string script_;
     size_t script_pos_{0};

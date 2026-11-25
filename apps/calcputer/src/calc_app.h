@@ -5,6 +5,8 @@
 #include "functions_page.h"
 #include "graph_page.h"
 
+#include "shortcut_bar.h"
+
 #include <memory>
 
 namespace calc_ui {
@@ -23,6 +25,7 @@ private:
     void show(PageId id);
     void refresh_status();
     void toggle_help();
+    void refresh_layer_bar();
     void scroll_help(int dir);
     void load();
     Page& page(PageId id);
@@ -44,6 +47,7 @@ private:
     lv_obj_t* mode_label_{nullptr};
     lv_obj_t* pages_[3]{};
     lv_obj_t* help_{nullptr};
+    cz::ShortcutBar layer_bar_;  // keys 4..8 while Fn / Sym / Shift is active
     lv_obj_t* help_text_{nullptr};
 };
 

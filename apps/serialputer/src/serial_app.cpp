@@ -105,6 +105,10 @@ SerialApp::SerialApp(cz::Runtime& rt)
     // open the last port if it is still there (SIM always is)
     if (session_.port == ser::kSimPort || std::filesystem::exists(session_.port)) engine_->open();
     build();
+    rt_.set_layer_handler([this](cz::LayerState s) {
+        refresh_layer_bar();  // labels can depend on modes and the page
+        layer_bar_.show_layer(s);
+    });
     io_timer_ = lv_timer_create([](lv_timer_t* t) { static_cast<SerialApp*>(lv_timer_get_user_data(t))->engine_->tick(); },
                                 2, this);
     ui_timer_ = lv_timer_create(
@@ -123,6 +127,7 @@ SerialApp::SerialApp(cz::Runtime& rt)
 }
 
 SerialApp::~SerialApp() {
+    rt_.set_layer_handler(nullptr);
     for (auto* t : {io_timer_, ui_timer_, save_timer_}) {
         if (t) lv_timer_delete(t);
     }
@@ -165,6 +170,12 @@ void SerialApp::build() {
         pages_[i] = make_box(root_, 0, kStatusHeight, kWidth, kContentH);
         page(static_cast<PageId>(i)).build(pages_[i]);
     }
+
+    layer_bar_ = cz::ShortcutBar{};
+    layer_bar_.build(root_, style_);
+    layer_bar_.set_auto_hide(true);
+    refresh_layer_bar();
+    layer_bar_.show_layer(rt_.key_layer());
 
     help_ = make_box(root_, 0, 0, kWidth, kHeight);
     lv_obj_set_style_bg_color(help_, style_.bg, 0);
@@ -216,6 +227,21 @@ void SerialApp::refresh_status() {
                   session_.fmt.baud, ser::frame_name(session_.fmt).c_str());
     const std::string text = std::string(buf) + " " + state;
     if (text != lv_label_get_text(port_label_)) lv_label_set_text(port_label_, text.c_str());
+}
+
+// what 4..8 do with Fn (F4..F8 = Fn + 4..8); Shift / Sym show the typed characters
+void SerialApp::refresh_layer_bar() {
+    layer_bar_.clear(cz::KeyLayer::Fn);
+    layer_bar_.set(6, "theme", true, cz::KeyLayer::Fn);
+    if (current_ == PageId::Term) {
+        layer_bar_.set(4, session_.send == ser::SendMode::Hex ? "crc" : "eol", true, cz::KeyLayer::Fn);
+        layer_bar_.set(5, "time", true, cz::KeyLayer::Fn);
+        layer_bar_.set(7, "hold", true, cz::KeyLayer::Fn);
+        layer_bar_.set(8, "clear", true, cz::KeyLayer::Fn);
+    } else if (current_ == PageId::Modbus) {
+        layer_bar_.set(5, "scan", true, cz::KeyLayer::Fn);
+        layer_bar_.set(8, "reset", true, cz::KeyLayer::Fn);
+    }
 }
 
 void SerialApp::toggle_help() {

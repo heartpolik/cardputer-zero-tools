@@ -46,6 +46,7 @@ Operators live on the Sym layer (blue legends): `+` T, `-` R, `*` 8, `/` N, `^` 
 | ![float](apps/bitputer/screenshots/float.png) | ![time](apps/bitputer/screenshots/time.png) |
 | ![signed](apps/bitputer/screenshots/signed.png) | ![orders](apps/bitputer/screenshots/orders.png) |
 | ![crc](apps/bitputer/screenshots/crc.png) | ![help](apps/bitputer/screenshots/help.png) |
+| ![fn](apps/bitputer/screenshots/fn.png) | |
 
 - **Words**: 8 / 16 / 32 / 64 bits (`F3`), unsigned or two's-complement signed (`F4`); every
   operation wraps like a register. The value is shown in HEX, DEC (plus the other signedness),

@@ -4,6 +4,8 @@
 #include "calc_page.h"
 #include "crc_page.h"
 
+#include "shortcut_bar.h"
+
 #include <memory>
 
 namespace bit_ui {
@@ -23,6 +25,7 @@ private:
     void refresh_status();
     void modes_changed();
     void toggle_help();
+    void refresh_layer_bar();
     void load();
     Page& page(PageId id);
 
@@ -42,6 +45,7 @@ private:
     lv_obj_t* mode_label_{nullptr};
     lv_obj_t* pages_[2]{};
     lv_obj_t* help_{nullptr};
+    cz::ShortcutBar layer_bar_;  // keys 4..8 while Fn / Sym / Shift is active
     lv_obj_t* help_text_{nullptr};
 };
 
