@@ -7,6 +7,7 @@
 #       SUMMARY      "Engineering calculator with graphs"
 #       ICON         assets/images/cz-calcputer.png
 #       ASSETS_DIR   assets             # copied to /usr/share/<TARGET>/
+#       LICENSE      LICENSE            # optional, relative to the app dir; default: this repo's MIT LICENSE
 #   )
 
 include(GNUInstallDirs)
@@ -15,7 +16,7 @@ set(CZ_MAINTAINER "heartpolik <heartpolik@users.noreply.github.com>" CACHE STRIN
 set(CZ_DEBIAN_REVISION "1" CACHE STRING "Debian package revision")
 
 function(cz_package_app)
-    cmake_parse_arguments(APP "" "TARGET;DISPLAY_NAME;VERSION;SUMMARY;ICON;ASSETS_DIR" "" ${ARGN})
+    cmake_parse_arguments(APP "" "TARGET;DISPLAY_NAME;VERSION;SUMMARY;ICON;ASSETS_DIR;LICENSE" "" ${ARGN})
 
     set(APP_SHARE "${CMAKE_INSTALL_DATADIR}/${APP_TARGET}")
     get_filename_component(APP_ICON_NAME "${APP_ICON}" NAME)
@@ -43,14 +44,18 @@ function(cz_package_app)
         RENAME "${APP_ICON_INSTALLED}")
 
     set(APP_DOC "${CMAKE_INSTALL_DATADIR}/doc/${APP_TARGET}")
-    install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${APP_DOC}")
+    if(APP_LICENSE)
+        install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${APP_LICENSE}" DESTINATION "${APP_DOC}" RENAME LICENSE)
+    else()
+        install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "${APP_DOC}")
+    endif()
     install(FILES "${CZKIT_ASSETS_DIR}/fonts/LICENSE.txt"
         DESTINATION "${APP_DOC}"
         RENAME "third-party-assets-license.txt")
 
     set(CPACK_GENERATOR "DEB" PARENT_SCOPE)
     set(CPACK_PACKAGING_INSTALL_PREFIX "/usr" PARENT_SCOPE)
-    set(CPACK_OUTPUT_FILE_PREFIX "${PROJECT_SOURCE_DIR}/dist" PARENT_SCOPE)
+    set(CPACK_OUTPUT_FILE_PREFIX "${CZ_DIST_DIR}" PARENT_SCOPE)
     set(CPACK_PACKAGE_NAME "${APP_TARGET}" PARENT_SCOPE)
     set(CPACK_PACKAGE_VERSION "${APP_VERSION}" PARENT_SCOPE)
     set(CPACK_PACKAGE_CONTACT "${CZ_MAINTAINER}" PARENT_SCOPE)
