@@ -7,7 +7,6 @@ add_library(bit_core STATIC
     core/word.cpp
     core/int_expr.cpp
     core/decode.cpp
-    core/checksum.cpp
     core/session.cpp
 )
 target_include_directories(bit_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core")

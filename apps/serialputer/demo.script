@@ -1,0 +1,8 @@
+{f2}AT{enter}{wait:200}ATI{enter}{wait:250}AT+CSQ{enter}{wait:250}{shot:@OUT@/text.png}
+{f2}{f2}{f3}{f4}01 03 00 00 00 06{enter}{wait:300}10 04 00 00 00 04{enter}{wait:300}{shot:@OUT@/term.png}
+{tab}{tab}{down}{down}{down}{down}{down}{down}{left}{left}{down}{right}{right}{wait:100}{shot:@OUT@/port.png}
+{tab}{tab}{right}{right}{right}24{enter}{wait:400}{shot:@OUT@/modbus.png}
+{f2}{f2}{f2}{f2}{f2}{f2}{f2}{down}{down}{down}{down}{down}{wait:100}{shot:@OUT@/modbus-f32.png}
+{f5}{wait:2500}{shot:@OUT@/scan.png}{esc}
+{tab}{tab}{wait:100}{shot:@OUT@/sniff.png}
+{f1}{wait:150}{shot:@OUT@/help.png}{quit}

@@ -10,7 +10,7 @@
 ## Структура
 - `common/` → бібліотека `czkit`: `Runtime` (дисплей fbdev/SDL, тема + `~/.config/<app>/settings.conf`, toast, цикл, `CZ_SCRIPT`, `CZ_ASSETS`),
   `platform/key_decoder` (чистий, тести), `linux_input` (фази Press/Repeat/LongPress/Release, автоповтор наш, kernel repeat ігнорується).
-- `common/core/` → `czcore` (чистий C++: `cz::LineEditor`, `cz::prepare_input`), лінкується в ядра застосунків.
+- `common/core/` → `czcore` (чистий C++: `cz::LineEditor`, `cz::prepare_input`, `bytes.h`: `parse_bytes` + CRC-специфікації — перенесено з BitPuter, там лишились using-аліаси в `checksum.h`), лінкується в ядра застосунків.
   `common/src/view/ui_style` → `cz::Style` (палітра dark/light + JetBrains Mono з `common/assets/fonts`, ставиться в кожен пакет).
 - `apps/<app>/`: `core/` (чистий C++ без LVGL + `tests/`), `src/` (UI), `assets/`, `demo.script` (скріншоти README).
 - Збирається один застосунок за раз: `-DCZ_APP=<app>` (CPack на проєкт). `cmake/cz-package.cmake` → `cz_package_app()`.
@@ -56,3 +56,16 @@
   невеликий список SMD-кодів діодів/транзисторів — може бути неповним), `tools` (`Form`: введені поля + порядок редагування,
   зайве найстаріше поле очищається; Ohm/DIV/LED/RC/LC/BATT), `session`.
 - UI: MARK / BANDS / TOOLS; F2 E-ряд, F6 тема. Кольори вводяться цифрами (0 чорний … 9 білий, G золото, S срібло).
+
+## SerialPuter (apps/serialputer, пакет `cz-serialputer`)
+- `core/serial_format` (бод, 8N1…, час символу, Modbus-пауза 3,5 символу / 1750 мкс > 19200), `capture` (`Framer`: кадри за паузою
+  з оцінкою часу першого байта чанку або за LF; `Capture` з лічильниками; вигляди HEX/TXT/DUMP, мітки часу, рядок логу),
+  `modbus` (encode/decode FC 1–6/15/16, `Sniffer` з пам'яттю запитів за адресою, `split_frames` за CRC, `Master` з таймаутом,
+  ігнором власного ехо і склеюванням розірваної відповіді, `Scanner`, `format_value` U16…F32 ABCD/CDAB), `sim_bus` (порт `SIM`:
+  BMS #1, інвертор #16, AT-модем — для симулятора і скриншотів), `session` (`prepare_send`, налаштування).
+- `src/serial_port` (termios, потік читання з `poll()` і мітками часу, `flock`; після `tcsetattr` формат читається назад),
+  `engine` (порт + кадри + Modbus + лог, `tick()` з LVGL-таймера 2 мс), сторінки TERM / MODBUS / PORT. Лише читання по Modbus.
+- Пристрій (перевірено 2026-11-25): UART заголовка = GPIO14 TX / GPIO15 RX = `/dev/serial0` → `ttyS0` (**mini UART**:
+  лише 8N1/7N1, парність → EINVAL; PL011 зайнятий Bluetooth). Виведено на Grove (жовтий TX, білий RX, режим UART за замовч.,
+  перемикач `G4` low = UART) і EXT пін 14 (TX) / 12 (RX). Консолі та getty на ньому немає, `pi` у `dialout`.
+  Логіка 3,3 В; 5 В на Grove вмикає `PYG4_GROVE_EN` (M5IOE1). Вбудований ІЧ: `gpio-ir` GPIO13, `gpio-ir-tx` GPIO12.

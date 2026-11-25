@@ -9,6 +9,7 @@ Small native apps for the [M5Stack CardputerZero](https://shop.m5stack.com/pages
 | [`calcputer`](apps/calcputer) | **CalcPuter** — engineering calculator: expressions, variables, user functions, calculus, function graphs with trace / roots / extrema |
 | [`bitputer`](apps/bitputer) | **BitPuter** — programmer's calculator: 8–64-bit words, HEX/DEC/OCT/BIN at once, editable bit grid, float/char/Unix-time views, CRC & checksums |
 | [`ohmputer`](apps/ohmputer) | **OhmPuter** — electronics helper: SMD / capacitor / part markings, resistor colour bands, Ohm's law, dividers with E-series pairs, LED resistor, RC, LC, battery runtime |
+| [`serialputer`](apps/serialputer) | **SerialPuter** — serial terminal (UART / RS232 / RS485 modules), Modbus RTU master with register table, polling and address scan, bus sniffer with Modbus labels, log to file |
 
 ## CalcPuter (`apps/calcputer`)
 
@@ -91,6 +92,34 @@ State persists in `~/.config/cz-bitputer/`. `F6` toggles the theme, `F1` shows h
   `4k7 2u2 10m 1e-3`. Typing one input too many clears the oldest one.
 - `F2` cycles E6 / E12 / E24 / E48 / E96, `F6` theme, `F1` help. State persists in `~/.config/cz-ohmputer/`.
 
+## SerialPuter (`apps/serialputer`)
+
+| | |
+|---|---|
+| ![text](apps/serialputer/screenshots/text.png) | ![term](apps/serialputer/screenshots/term.png) |
+| ![modbus](apps/serialputer/screenshots/modbus.png) | ![modbus-f32](apps/serialputer/screenshots/modbus-f32.png) |
+| ![scan](apps/serialputer/screenshots/scan.png) | ![sniff](apps/serialputer/screenshots/sniff.png) |
+| ![port](apps/serialputer/screenshots/port.png) | ![help](apps/serialputer/screenshots/help.png) |
+
+- **TERM** — frames as they arrive (`<` received, `>` sent) with time since start or between frames. A pause on the
+  line ends a frame (automatic Modbus 3.5-character gap, or fixed) or LF does (line mode). Views HEX / TXT / DUMP
+  (`F2`). Send typed text with escapes `\r \n \xHH` and a line end (none / CR / LF / CRLF), or bytes
+  (`01 03 00 00 00 0A`, optionally with the Modbus CRC appended). Enter on an empty line repeats the last one,
+  `F7` holds the view to scroll back, `F9` writes everything to `~/.config/cz-serialputer/logs/`.
+  Valid Modbus RTU frames get a label (`#1 READ HOLDING 0 x10`, `#1 -> 10 regs @0`, exceptions), glued
+  request + response frames are split by CRC — handy for sniffing a BMS ↔ inverter link.
+- **MODBUS** — read coils / discrete inputs / holding / input registers (FC 01–04): ID, function, register, count;
+  `Enter` reads once, `F3` polls, `F5` scans addresses for anything that answers (exceptions count as an answer).
+  Values as U16 / I16 / HEX / U32 / I32 / F32 with ABCD or CDAB word order. Read-only: nothing is written.
+- **PORT** — port (`SIM` demo bus, `serial0`, USB adapters), baud 1200–921600, 8N1 / 8E1 / 8O1 / 8N2 / 7E1 / 7O1,
+  frame split, poll period, timeout, scan range, log file.
+- `SIM` is a pretend line with a battery BMS at #1, an inverter at #16 and a modem (`AT`, `ATI`, `AT+CSQ`): the
+  desktop simulator and the screenshots use it.
+- Wiring: the header UART (GPIO14 TX / GPIO15 RX, `/dev/serial0` → `ttyS0`) is on the Grove port in its default
+  UART mode (yellow = TX out, white = RX in) and on EXT pins 14 / 12. It is the Pi **mini UART**: 8N1 / 7N1 only,
+  no parity — use a USB-RS485 adapter for 8E1 devices. Logic is 3.3 V: a module powered from 5 V needs a divider
+  on its TX line.
+
 ## Layout
 
 ```
@@ -98,7 +127,7 @@ common/          czkit: shared runtime for all apps (from the official Template,
   src/app/       Runtime (display, theme, toast, main loop, scripted runs), assets, simulator
   src/platform/  keyboard: evdev decoder (CardputerZero Sym map), repeat/long-press routing
   src/view/      ui_style: shared colours and JetBrains Mono fonts (assets/fonts)
-  core/          czcore: pure C++ helpers for app cores (line editor)
+  core/          czcore: pure C++ helpers for app cores (line editor, byte strings + CRCs)
 apps/<app>/      one directory per app: core/ (pure C++, host-tested), src/ (LVGL UI), assets/
 cmake/           cz_package_app(): install layout + Debian package
 docker/          debian:trixie arm64 build image (native on Apple Silicon)

@@ -1,0 +1,41 @@
+{
+  "package_name": "cz-serialputer",
+  "app_name": "SerialPuter",
+  "bin_name": "cz-serialputer",
+  "version": "0.1.0",
+  "description": "Serial terminal, Modbus RTU master and bus sniffer",
+
+  "store": {
+    "summary": "Serial terminal + Modbus RTU master and sniffer for UART/RS232/RS485",
+    "description": "SerialPuter turns the CardputerZero into a pocket serial tool. Plug a UART, RS232 or RS485 module into the Grove port (or use a USB adapter).\n\n- Terminal: frames split by line pauses or LF, HEX / text / hex+ASCII views, timestamps, send text with escapes and line endings or raw bytes with an optional Modbus CRC, history, scroll-back, log to file\n- Modbus RTU master: read coils, inputs, holding and input registers; poll; scan addresses 1-247\n- Values as U16, I16, HEX, U32, I32 and float with ABCD or CDAB word order\n- Sniffer: Modbus frames are labelled (request, response with register numbers, exceptions) and glued frames are split by CRC\n- 1200 to 921600 baud, 8N1 / 8E1 / 8O1 / 8N2 / 7E1 / 7O1 (the built-in mini UART does 8N1 / 7N1)\n- SIM port: a demo bus with a BMS, an inverter and a modem to try everything without hardware\n\nRead-only for Modbus: nothing is written to your devices. Tab switches TERM / MODBUS / PORT, F1 shows help.",
+    "categories": ["System Tools", "Education"],
+    "screenshots": [
+      "screenshots/term.png",
+      "screenshots/text.png",
+      "screenshots/modbus.png",
+      "screenshots/modbus-f32.png",
+      "screenshots/scan.png",
+      "screenshots/port.png"
+    ],
+    "icon": "packaging/store-icon.png",
+    "license": "MIT",
+    "source_repo": "https://github.com/heartpolik/cardputer-zero-tools",
+    "author": { "github": "heartpolik", "display_name": "heartpolik" },
+    "share_code": "SERL",
+    "permissions": {
+      "camera": false,
+      "microphone": false,
+      "imu": false,
+      "network": false,
+      "additional_hardware": true,
+      "background_service": false,
+      "external_display": false
+    },
+    "locales": {
+      "uk": {
+        "title": "SerialPuter",
+        "summary": "Термінал послідовного порту, Modbus RTU майстер і сніфер"
+      }
+    }
+  }
+}

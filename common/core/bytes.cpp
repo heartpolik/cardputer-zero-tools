@@ -1,9 +1,9 @@
-#include "checksum.h"
+#include "bytes.h"
 
 #include <cctype>
 #include <cstdio>
 
-namespace bits {
+namespace cz {
 namespace {
 
 int hex_value(char c) {
@@ -156,4 +156,4 @@ std::string wire_bytes(const CrcSpec& spec, uint32_t value) {
     return out;
 }
 
-}  // namespace bits
+}  // namespace cz
