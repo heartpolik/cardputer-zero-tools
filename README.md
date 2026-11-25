@@ -18,6 +18,7 @@ Small native apps for the [M5Stack CardputerZero](https://shop.m5stack.com/pages
 | ![calc](apps/calcputer/screenshots/calc.png) | ![history](apps/calcputer/screenshots/history.png) |
 | ![functions](apps/calcputer/screenshots/functions.png) | ![graph](apps/calcputer/screenshots/graph.png) |
 | ![trace](apps/calcputer/screenshots/trace.png) | ![help](apps/calcputer/screenshots/help.png) |
+| ![graph-keys](apps/calcputer/screenshots/graph-keys.png) | |
 
 - **Fast input**: `Space` completes names (`sq` → `sqrt(|)`, again cycles `sin(` → `sinh(` → `sign(`;
   user functions and variables first), `(` inserts a `()` pair, `)` steps over an existing one,

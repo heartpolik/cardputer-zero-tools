@@ -21,9 +21,10 @@ lv_color_t ShortcutBar::key_color(int key) {
 }
 
 const char* ShortcutBar::typed(int key, platform::KeyLayer layer) {
-    // from the device keymaps (linux,keymap / keymap1 / keymap2) and the US shift row
+    // Shift: the US shift row. Sym: keymap1 sends codes 40 41 43 51 52 for 4..8, which the
+    // M5Stack symbol map (KeyDecoder::builtin_symbol) turns into the same $ % ^ & *.
     static const char* shift[kKeys] = {"$", "%", "^", "&", "*"};
-    static const char* sym[kKeys] = {"'", "`", "\\", ",", "."};
+    static const char* sym[kKeys] = {"$", "%", "^", "&", "*"};
     static const char* fn[kKeys] = {"F4", "F5", "F6", "F7", "F8"};
     static const char* base[kKeys] = {"4", "5", "6", "7", "8"};
     if (key < kFirstKey || key > kLastKey) return "";

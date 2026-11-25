@@ -353,13 +353,23 @@ bool GraphPage::on_key(const cz::KeyEvent& ev) {
     const bool press = ev.phase == cz::KeyPhase::Press;
     uint32_t k = ev.key;
 
-    // bare F/X/Z/C act as arrows here (no text entry on this page)
+    // bare F/X/Z/C act as arrows here (no text entry on this page); also with Shift locked
     switch (k) {
-        case 'f': k = key::Up; break;
-        case 'x': k = key::Down; break;
-        case 'z': k = key::Left; break;
-        case 'c': k = key::Right; break;
-        default: break;
+        case 'f': case 'F': k = key::Up; break;
+        case 'x': case 'X': k = key::Down; break;
+        case 'z': case 'Z': k = key::Left; break;
+        case 'c': case 'C': k = key::Right; break;
+        // keys 4..8 under the screen: Shift / Sym give $ % ^ & *, Fn gives F4..F8 (see the bar)
+        case '$': k = 'o'; break;  // zoom out
+        case '%': k = 'i'; break;  // zoom in
+        case '^': k = 'a'; break;  // fit y
+        case '&': k = 's'; break;  // square
+        case '*': k = '0'; break;  // reset
+        default:
+            if (k == key::F(6)) k = 't';       // trace
+            else if (k == key::F(7)) k = 'r';  // root
+            else if (k == key::F(8)) k = 'm';  // min / max
+            break;
     }
 
     const double cx = trace_ ? trace_x_ : (view_.xmin + view_.xmax) / 2;

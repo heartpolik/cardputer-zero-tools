@@ -10,5 +10,6 @@ der(f(x),2
 {tab}sin(x){enter}f{enter}x^2/4-3{wait:200}{shot:@OUT@/functions.png}
 {tab}{wait:300}{shot:@OUT@/graph.png}
 t{right}{right}{right}m{wait:300}{shot:@OUT@/trace.png}{esc}
+{layer:shift!}{wait:150}{shot:@OUT@/graph-keys.png}{layer:base}{esc}
 {f1}{wait:100}{shot:@OUT@/help.png}{esc}
 {wait:100}{quit}

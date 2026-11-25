@@ -66,6 +66,13 @@ const char* help_for(PageId id) {
                    "0  reset view   A  fit y   S  square\n"
                    "1-4  show / hide y1..y4   L  legend\n"
                    "\n"
+                   "#63e2b7 KEYS 4..8# (under the screen)\n"
+                   "Shift/Sym + 4 5 6 7 8:\n"
+                   "  zoom- zoom+ fit-y square reset\n"
+                   "Fn + 6 7 8:  trace  root  min/max\n"
+                   "Double-tap Shift to lock it: then\n"
+                   "4/5 zoom again and again, F X Z C pan\n"
+                   "\n"
                    "#63e2b7 TRACE#\n"
                    "T / Enter  trace on/off\n"
                    "Z C        move along the curve\n"
@@ -174,6 +181,7 @@ void CalcApp::destroy() {
 
 void CalcApp::show(PageId id) {
     current_ = id;
+    refresh_layer_bar();
     for (int i = 0; i < 3; ++i) {
         if (i == static_cast<int>(id)) lv_obj_clear_flag(pages_[i], LV_OBJ_FLAG_HIDDEN);
         else lv_obj_add_flag(pages_[i], LV_OBJ_FLAG_HIDDEN);
@@ -195,8 +203,22 @@ void CalcApp::refresh_status() {
 
 // what 4..8 do with Fn (F4..F8 = Fn + 4..8); Shift / Sym show the typed characters
 void CalcApp::refresh_layer_bar() {
-    layer_bar_.set(4, "theme", true, cz::KeyLayer::Fn);
-    layer_bar_.set(5, "clear", true, cz::KeyLayer::Fn);
+    using cz::KeyLayer;
+    for (auto l : {KeyLayer::Shift, KeyLayer::Sym, KeyLayer::Fn}) layer_bar_.clear(l);
+    layer_bar_.set(4, "theme", true, KeyLayer::Fn);
+    layer_bar_.set(5, "clear", true, KeyLayer::Fn);
+    if (current_ != PageId::Graph) return;
+    // the graph page: Shift or Sym + 4..8 ($ % ^ & *) shape the view, Fn + 6..8 analyse
+    for (auto l : {KeyLayer::Shift, KeyLayer::Sym}) {
+        layer_bar_.set(4, "zoom -", true, l);
+        layer_bar_.set(5, "zoom +", true, l);
+        layer_bar_.set(6, "fit y", true, l);
+        layer_bar_.set(7, "square", true, l);
+        layer_bar_.set(8, "reset", true, l);
+    }
+    layer_bar_.set(6, "trace", true, KeyLayer::Fn);
+    layer_bar_.set(7, "root", true, KeyLayer::Fn);
+    layer_bar_.set(8, "min/max", true, KeyLayer::Fn);
 }
 
 void CalcApp::toggle_help() {

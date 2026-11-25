@@ -7,7 +7,8 @@
 //
 // Layers: while Shift, Sym or Fn is tapped or locked (Runtime::key_layer()), the bar shows
 // what 4..8 do in that layer: the app's labels for it, or else what the key types
-// ($ % ^ & *, ' ` \ , ., F4..F8) in grey. A tag on the left names the layer (filled
+// ($ % ^ & * for both Shift and Sym, F4..F8 for Fn) in grey. Shift and Sym type the same
+// characters on 4..8, so an app can tell only three sets apart: digits, $%^&*, F4..F8. A tag on the left names the layer (filled
 // when locked). With auto_hide the bar only appears while a modifier is active, for
 // screens where 4..8 are plain digits (calculators).
 #pragma once
