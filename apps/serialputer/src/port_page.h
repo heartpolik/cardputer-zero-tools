@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_context.h"
+#include "shortcut_bar.h"
 
 #include <vector>
 
@@ -35,6 +36,7 @@ private:
     lv_obj_t* names_[kRows]{};
     lv_obj_t* values_[kRows]{};
     lv_obj_t* info_{nullptr};
+    cz::ShortcutBar bar_;
 };
 
 }  // namespace ser_ui

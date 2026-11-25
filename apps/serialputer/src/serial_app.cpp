@@ -44,7 +44,7 @@ const char* help_for(PageId id) {
                    "Tab TERM > MODBUS > PORT   F6 theme";
         case PageId::Modbus:
             return "#63e2b7 MODBUS RTU MASTER#\n"
-                   "Fn+Z/C  field: ID FN REG N\n"
+                   "Z / C   field: ID FN REG N (no Fn)\n"
                    "0-9     type a value   Bksp erase\n"
                    "Space   on FN: next function\n"
                    "FN 01 coils  02 inputs\n"
@@ -55,7 +55,7 @@ const char* help_for(PageId id) {
                    "F5      scan addresses (PORT > Scan)\n"
                    "F2      value: U16 I16 HEX U32 I32 F32\n"
                    "        ABCD / CDAB = word order\n"
-                   "Fn+F/X  scroll the table\n"
+                   "F / X   scroll the table\n"
                    "F8      reset counters   Esc stop\n"
                    "\n"
                    "REG is the 0-based address on the wire:\n"
@@ -66,8 +66,10 @@ const char* help_for(PageId id) {
                    "the device.";
         case PageId::Port:
             return "#63e2b7 PORT#\n"
-                   "Fn+F/X  choose a row\n"
-                   "Fn+Z/C  change     Enter open/close\n"
+                   "F / X   choose a row (no Fn needed)\n"
+                   "Z / C   change     Enter open/close\n"
+                   "Keys under the screen:\n"
+                   "4 rescan ports  6 log on/off  8 open\n"
                    "\n"
                    "SIM     demo bus: BMS #1, inverter #16,\n"
                    "        modem (AT, ATI, AT+CSQ)\n"

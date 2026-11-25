@@ -8,9 +8,10 @@ namespace {
 
 namespace key = platform::key;
 
-constexpr int kRowY = 2;
-constexpr int kRowH = 14;
-constexpr int kInfoY = 131;
+constexpr int kRowY = 1;
+constexpr int kRowH = 13;
+constexpr int kInfoY = 121;
+constexpr int kBarY = kContentH - cz::ShortcutBar::kHeight;
 
 constexpr const char* kNames[PortPage::kRows] = {"Port",       "Baud",    "Frame", "Split", "Modbus labels",
                                                  "Poll every", "Timeout", "Scan",  "Log file"};
@@ -52,7 +53,8 @@ void PortPage::build(lv_obj_t* parent) {
     info_ = make_label(parent, s.ui10, s.dim);
     lv_obj_set_pos(info_, 8, kInfoY);
     lv_obj_set_width(info_, kWidth - 16);
-    lv_label_set_long_mode(info_, LV_LABEL_LONG_MODE_WRAP);
+    lv_label_set_long_mode(info_, LV_LABEL_LONG_MODE_DOTS);
+    bar_.build(parent, s, kBarY);
     ports_ = list_ports();
     refresh();
 }
@@ -126,7 +128,7 @@ void PortPage::refresh() {
         text = "no access: add the user to the dialout group";
         color = st.warn;
     } else if (sel_ == RPort) {
-        text = "Fn+Z/C choose   Enter open/close   SIM = demo bus";
+        text = "Z/C choose port   8 open/close   SIM = demo bus";
     } else if (sel_ == RSplit) {
         text = "gap: a pause ends a frame (Modbus)  line: LF ends it";
     } else if (sel_ == RLog) {
@@ -140,6 +142,11 @@ void PortPage::refresh() {
     }
     lv_obj_set_style_text_color(info_, color, 0);
     lv_label_set_text(info_, text.c_str());
+
+    const bool open = ctx_.engine.is_open();
+    bar_.set(4, "ports");
+    bar_.set(6, ctx_.engine.logging() ? "log off" : "log on");
+    bar_.set(8, open ? "close" : "open");
 }
 
 void PortPage::change(int dir) {
@@ -210,17 +217,46 @@ void PortPage::activate() {
 
 bool PortPage::on_key(const cz::KeyEvent& ev) {
     if (!ev.pressed_or_repeat()) return false;
+    if (ev.phase == cz::KeyPhase::Press && cz::ShortcutBar::is_key(ev.key)) {
+        switch (cz::ShortcutBar::key_of(ev.key)) {
+            case 4:
+                ports_ = list_ports();
+                ctx_.toast(std::to_string(ports_.size()) + " ports");
+                break;
+            case 6:
+                if (!ctx_.engine.set_logging(!ctx_.engine.logging())) ctx_.toast(ctx_.engine.error());
+                else ctx_.toast(ctx_.engine.logging() ? "Log: " + ctx_.engine.log_path() : "Log closed");
+                ctx_.status_changed();
+                break;
+            case 8: {
+                const int keep = sel_;
+                sel_ = RPort;
+                activate();
+                sel_ = keep;
+                break;
+            }
+            default:
+                return true;
+        }
+        refresh();
+        return true;
+    }
+    // no text input on this page: F/X/Z/C are arrows without Fn (launcher convention)
     switch (ev.key) {
         case key::Up:
+        case 'f':
             sel_ = (sel_ + kRows - 1) % kRows;
             break;
         case key::Down:
+        case 'x':
             sel_ = (sel_ + 1) % kRows;
             break;
         case key::Left:
+        case 'z':
             change(-1);
             return true;
         case key::Right:
+        case 'c':
         case ' ':
             change(1);
             return true;

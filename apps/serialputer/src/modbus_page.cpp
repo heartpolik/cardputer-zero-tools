@@ -311,10 +311,12 @@ bool ModbusPage::on_key(const cz::KeyEvent& ev) {
             ctx_.status_changed();
             break;
         case key::Left:
+        case 'z':  // F/X/Z/C are arrows without Fn here: only digits are typed on this page
             field_ = (field_ + kFields - 1) % kFields;
             fresh_ = true;
             break;
         case key::Right:
+        case 'c':
         case ' ':
             if (ev.key == ' ' && field_ == Fn) {
                 set_field_value(Fn, mb::next_read_fn(sess.req.fc, 1));
@@ -324,9 +326,11 @@ bool ModbusPage::on_key(const cz::KeyEvent& ev) {
             fresh_ = true;
             break;
         case key::Up:
+        case 'f':
             first_ = std::max(0, first_ - 1);
             break;
         case key::Down:
+        case 'x':
             ++first_;
             break;
         case key::Backspace:

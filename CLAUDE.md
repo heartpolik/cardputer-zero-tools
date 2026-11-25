@@ -29,6 +29,14 @@
   Esc: коротко — app, довго — HOME (лаунчер) / quit (наш Runtime).
 - Іконки лаунчера: `/usr/share/APPLaunch/share/images/<name>.png` (~100×100), `.desktop` у `/usr/share/APPLaunch/applications/`.
 
+## Клавіші: домовленості CardputerZero (з офіційних launcher і Store)
+- F/X/Z/C без Fn = стрілки вгору/вниз/вліво/вправо (launcher docs, «F/X/Z/C Direction-Key Convention»), але лише там,
+  де немає введення тексту (у калькуляторах і терміналі — лише Fn+F/X/Z/C).
+- Клавіші 4–8 стоять під дисплеєм: `cz::ShortcutBar` (`common/src/view/shortcut_bar`) малює підписи над ними як Store
+  (`appstore_shortcut_bar.cpp`): центри x = 48/104/160/216/272, кольори 4 жовтий, 5 синій, 6 зелений, 7 фіолетовий,
+  8 помаранчевий; 4 — «назад», 8 — головна дія; недоступне сіре. Не для екранів, де цифри — введення (калькулятори, BANDS, MODBUS).
+  Зараз: SerialPuter PORT (4 ports, 6 log, 8 open/close), DiscPuter.
+
 ## Підводні камені
 - `lv_delay_ms()` без delay-callback — busy-wait (~90% CPU). У циклі `sleep_for` (вже в `Runtime::run`).
 - Mono.framework на Маку підсовує старий `png.h` → `CMAKE_FIND_FRAMEWORK=LAST` (локальний `CMakeUserPresets.json`, пресет `mac`).
