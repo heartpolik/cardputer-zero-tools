@@ -13,11 +13,9 @@
       "screenshots/bits.png",
       "screenshots/grid.png",
       "screenshots/float.png",
-      "screenshots/time.png",
       "screenshots/signed.png",
       "screenshots/orders.png",
-      "screenshots/crc.png",
-      "screenshots/help.png"
+      "screenshots/crc.png"
     ],
     "icon": "packaging/store-icon.png",
     "license": "MIT",
